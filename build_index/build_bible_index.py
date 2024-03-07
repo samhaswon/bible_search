@@ -1,5 +1,5 @@
 from bibles import *
-from src.bible_search.translate import translate
+from src.multi_bible_search.translate import translate
 import bz2
 import json
 import multiprocessing
@@ -33,9 +33,6 @@ def index_bible(bible, name: str, result) -> None:
     :param result: Resulting dictionary to add the version's index to.
     :return: None
     """
-    ignored_tokens = ["the", "a", "an", "and", "but", "or", "nor", "so", "of", "that", "to", "in", "on", "i", "she",
-                      "it", "we", "is", "are", "do", "did"]
-    ignored_tokens = []
     tmp_index = {}
 
     # Iterate through the Bible
@@ -51,13 +48,11 @@ def index_bible(bible, name: str, result) -> None:
                     tokens = tokenize(passage[passage.find(""):])
                     reference = f"{translate(book)} {chapter}:{verse}"
                     for token in tokens:
-                        if token in ignored_tokens:
-                            continue
                         if not token in tmp_index:
                             tmp_index[token] = []
                         # Don't duplicate references
-                        if reference in tmp_index[token]:
-                            continue
+                        # if reference in tmp_index[token]:
+                        #     continue
                         tmp_index[token].append(reference)
     result.update({name: tmp_index})
 

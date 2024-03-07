@@ -45,10 +45,10 @@ class BibleSearch(object):
         query_tokens = self._tokenize(query)
 
         # Find most likely matches
-        all_refs = set()
+        all_refs = []
 
         for token in query_tokens:
-            all_refs.update(self.__search_index[version].get(token, []))
+            all_refs.extend(self.__search_index[version].get(token, []))
 
         ref_counter = Counter(all_refs)
         ref_counter = sorted(ref_counter.items(), key=lambda x: x[1], reverse=True)

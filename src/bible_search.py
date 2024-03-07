@@ -6,14 +6,15 @@ from typing import List
 
 
 class BibleSearch(object):
-    def __init__(self):
+    def __init__(self, debug=False):
         try:
             with bz2.open("src/bible_index.json.pbz2", "rt", encoding='utf-8')as data_file:
                 self.__search_index = json.load(data_file)
         except FileNotFoundError:
             with bz2.open("../src/bible_index.json.pbz2", "rt", encoding='utf-8') as data_file:
                 self.__search_index = json.load(data_file)
-        print("Search index loaded")
+        if debug:
+            print("Search index loaded")
 
     @staticmethod
     def _tokenize(input_string: str) -> List[str]:
@@ -45,10 +46,10 @@ class BibleSearch(object):
         query_tokens = self._tokenize(query)
 
         # Find most likely matches
-        all_refs = []
+        all_refs = set()
 
         for token in query_tokens:
-            all_refs.extend(self.__search_index[version].get(token, []))
+            all_refs.update(self.__search_index[version].get(token, []))
 
         ref_counter = Counter(all_refs)
         ref_counter = sorted(ref_counter.items(), key=lambda x: x[1], reverse=True)

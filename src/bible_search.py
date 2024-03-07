@@ -11,7 +11,7 @@ class BibleSearch(object):
             with bz2.open("src/bible_index.json.pbz2", "rt", encoding='utf-8')as data_file:
                 self.__search_index = json.load(data_file)
         except FileNotFoundError:
-            with bz2.open("/bible_index.json.pbz2", "rt", encoding='utf-8') as data_file:
+            with bz2.open("../src/bible_index.json.pbz2", "rt", encoding='utf-8') as data_file:
                 self.__search_index = json.load(data_file)
         print("Search index loaded")
 

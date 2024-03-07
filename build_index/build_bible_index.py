@@ -1,5 +1,5 @@
 from bibles import *
-from src.translate import translate
+from src.bible_search.translate import translate
 import bz2
 import json
 import multiprocessing

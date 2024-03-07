@@ -1,5 +1,5 @@
 import unittest
-from src.bible_search.bible_search import BibleSearch
+from src.multi_bible_search.bible_search import BibleSearch
 
 
 class TestSearch(unittest.TestCase):

@@ -1,4 +1,4 @@
-from src.multi_bible_search.translate import rtranslate
+from .translate import rtranslate
 import bz2
 from collections import Counter
 import json

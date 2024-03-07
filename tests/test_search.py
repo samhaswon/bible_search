@@ -5,6 +5,7 @@ from src.bible_search import BibleSearch
 class TestSearch(unittest.TestCase):
     def setUp(self) -> None:
         self.bible_search = BibleSearch()
+
     def test_query(self):
         query1 = self.bible_search.search("Jesus wept")
         self.assertIn("John 11:35", query1)

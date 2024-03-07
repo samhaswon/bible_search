@@ -2,17 +2,16 @@ from .translate import rtranslate
 import bz2
 from collections import Counter
 import json
+import os
 from typing import List
 
 
 class BibleSearch(object):
     def __init__(self, debug=False):
-        try:
-            with bz2.open("src/multi_bible_search/bible_index.json.pbz2", "rt", encoding='utf-8')as data_file:
-                self.__search_index = json.load(data_file)
-        except FileNotFoundError:
-            with bz2.open("../src/multi_bible_search/bible_index.json.pbz2", "rt", encoding='utf-8') as data_file:
-                self.__search_index = json.load(data_file)
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+        with bz2.open(f"{base_path}/bible_index.json.pbz2", "rt", encoding='utf-8')as data_file:
+            self.__search_index = json.load(data_file)
         if debug:
             print("Search index loaded")
 

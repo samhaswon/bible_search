@@ -1,4 +1,4 @@
-from src.translate import rtranslate
+from src.bible_search.translate import rtranslate
 import bz2
 from collections import Counter
 import json
@@ -8,10 +8,10 @@ from typing import List
 class BibleSearch(object):
     def __init__(self, debug=False):
         try:
-            with bz2.open("src/bible_index.json.pbz2", "rt", encoding='utf-8')as data_file:
+            with bz2.open("src/bible_search/bible_index.json.pbz2", "rt", encoding='utf-8')as data_file:
                 self.__search_index = json.load(data_file)
         except FileNotFoundError:
-            with bz2.open("../src/bible_index.json.pbz2", "rt", encoding='utf-8') as data_file:
+            with bz2.open("../src/bible_search/bible_index.json.pbz2", "rt", encoding='utf-8') as data_file:
                 self.__search_index = json.load(data_file)
         if debug:
             print("Search index loaded")

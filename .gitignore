@@ -2,3 +2,6 @@
 *__pycache__/*
 bibles/*
 venv/
+build/
+dist/
+/src/bible_search.egg-info/

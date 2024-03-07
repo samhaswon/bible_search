@@ -5,3 +5,4 @@ venv/
 build/
 dist/
 /src/multi_bible_search.egg-info/
+*.pyc

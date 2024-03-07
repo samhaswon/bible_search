@@ -4,4 +4,4 @@ bibles/*
 venv/
 build/
 dist/
-/src/bible_search.egg-info/
+/src/multi_bible_search.egg-info/

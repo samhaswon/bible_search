@@ -5,13 +5,13 @@ A Python package for searching multiple versions of the Bible.
 ## Installation
 
 ```shell
-pip install bible_search
+pip install multi_bible_search
 ```
 
 ## Usage 
 
 ```python
-from bible_search import BibleSearch
+from multi_bible_search import BibleSearch
 
 
 if __name__ == '__main__':
@@ -83,3 +83,10 @@ Currently, these versions are supported:
 
 - Young’s Literal Translation (YLT)
 
+Versions can be specified with the `version` parameter in `search()`. The string passed should be the short form of the version name.
+
+For example, you could use
+```python 
+BibleSearch().search("Jesus wept", version="ESV")
+```
+to search the ESV.

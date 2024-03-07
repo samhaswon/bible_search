@@ -3,8 +3,8 @@ requires = ["setuptools~=69.1.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bible_search"
-version = "0.0.1"
+name = "multi_bible_search"
+version = "0.0.2"
 authors = [
   { name="Samuel Howard" },
 ]
@@ -12,7 +12,7 @@ description = "A Python package for searching multiple versions of the Bible."
 readme = "README.md"
 requires-python = ">=3.7"
 license = {file = "LICENSE"}
-keywords = ["bible search", "bible_search", "esv", "kjv", "asv", "bible_api", "bible"]
+keywords = ["bible search", "bible_search", "esv", "kjv", "asv", "bible_api", "bible", "multi_bible_search"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",

@@ -85,28 +85,36 @@ def make_index(bibles: dict) -> dict:
 
 if __name__ == '__main__':
     # Bible object initialization
-    bibles = {'AKJV': AKJV(),
-              'AMP': AMP(),
-              'ASV': ASV(),
-              'BBE': BBE(),
-              'BSB': BSB(),
-              'CSB': CSB(),
-              'ESV': ESV(),
-              'GNV': GNV(),
-              'KJV': KJV(),
-              'KJV 1611': KJV1611(),
-              'LSV': LSV(),
-              'MSG': MSG(),
-              'NASB 1995': NASB1995(),
-              'NET': NET(),
-              'NIV 1984': NIV1984(),
-              'NIV 2011': NIV2011(),
-              'NKJV': NKJV(),
-              'NLT': NLT(),
-              'RSV': RSV(),
-              'WEB': WEB(),
-              'YLT': YLT()
-              }
+    bibles = {
+        'ACV': ACV(),
+        'AKJV': AKJV(),
+        'AMP': AMP(),
+        'ASV': ASV(),
+        'BBE': BBE(),
+        'BSB': BSB(),
+        'CSB': CSB(),
+        'Darby': Darby(),
+        'DRA': DRA(),
+        'EBR': EBR(),
+        'ESV': ESV(),
+        'GNV': GNV(),
+        'KJV': KJV(),
+        'KJV 1611': KJV1611(),
+        'LSV': LSV(),
+        'MSG': MSG(),
+        'NASB 1995': NASB1995(),
+        'NET': NET(),
+        'NIV 1984': NIV1984(),
+        'NIV 2011': NIV2011(),
+        'NKJV': NKJV(),
+        'NLT': NLT(),
+        'RNKJV': RNKJV(),
+        'RSV': RSV(),
+        'RWV': RWV(),
+        'UKJV': UKJV(),
+        'WEB': WEB(),
+        'YLT': YLT()
+    }
     # Timer start, because I like stats
     start = time.perf_counter()
 

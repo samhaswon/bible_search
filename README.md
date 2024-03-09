@@ -41,6 +41,8 @@ BibleSearch().versions
 
 Currently, these versions are supported:
 
+- A Conservative Version (ACV)
+
 - American King James Version (AKJV)
 
 - Amplified Bible (AMP)
@@ -52,6 +54,12 @@ Currently, these versions are supported:
 - Berean Standard Bible (BSB)
 
 - Christian Standard Bible (CSB)
+
+- Darby Bible (Darby)
+
+- Douay-Rheims 1899 American Edition (DRA)
+
+- Rotherham's Emphasized Bible (EBR)
 
 - English Standard Version (ESV)
 
@@ -77,7 +85,13 @@ Currently, these versions are supported:
 
 - New Living Translation (NLT)
 
+- Restored Name King James Version (RNKJV)
+
 - Revised Standard Version (RSV)
+
+- Revised Webster Version 1833 (RWV)
+
+- Updated King James Version (UKJV)
 
 - World English Bible (WEB)
 
@@ -85,7 +99,7 @@ Currently, these versions are supported:
 
 Versions can be specified with the `version` parameter in `search()`. The string passed should be the short form of the version name.
 
-For example, you could use
+For example, you could use:
 ```python 
 BibleSearch().search("Jesus wept", version="ESV")
 ```

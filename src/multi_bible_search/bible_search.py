@@ -35,6 +35,18 @@ class BibleSearch(object):
         book = short_ref[0:short_ref.find(" ")]
         return f"{rtranslate(int(book))}{short_ref[short_ref.find(' '):]}"
 
+    @staticmethod
+    def _ranked(refs: List[tuple], num_tokens: int) -> List[tuple]:
+        most_likely = []
+        others = []
+        for ref in refs:
+            if ref[1] == num_tokens:
+                most_likely.append(ref)
+            else:
+                others.append(ref)
+        most_likely.extend(others)
+        return most_likely
+
     def search(self, query: str, version="KJV"):
         """
         Search for a passage in the Bible.
@@ -52,7 +64,8 @@ class BibleSearch(object):
 
         ref_counter = Counter(all_refs)
         ref_counter = sorted(ref_counter.items(), key=lambda x: x[1], reverse=True)
-        return [self._long_reference(ref[0]) for ref in ref_counter]
+        ranked = self._ranked(ref_counter, len(query_tokens))
+        return [self._long_reference(ref[0]) for ref in ranked]
 
     @property
     def versions(self) -> List[str]:

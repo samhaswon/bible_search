@@ -51,8 +51,8 @@ def index_bible(bible, name: str, result) -> None:
                         if not token in tmp_index:
                             tmp_index[token] = []
                         # Don't duplicate references
-                        # if reference in tmp_index[token]:
-                        #     continue
+                        if reference in tmp_index[token]:
+                            continue
                         tmp_index[token].append(reference)
     result.update({name: tmp_index})
 

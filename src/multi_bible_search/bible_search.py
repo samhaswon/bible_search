@@ -61,6 +61,7 @@ class BibleSearch(object):
 
         for token in query_tokens:
             all_refs.extend(self.__search_index[version].get(token, []))
+            all_refs.extend(self.__search_index["All"].get(token, []))
 
         ref_counter = Counter(all_refs)
         ref_counter = sorted(ref_counter.items(), key=lambda x: x[1], reverse=True)

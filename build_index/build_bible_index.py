@@ -45,14 +45,14 @@ def index_bible(bible, name: str, result) -> None:
                 # Tokenize each verse, adding its reference
                 for passage in passage_result[heading]:
                     verse = passage[0:passage.find(" ")]
-                    tokens = tokenize(passage[passage.find(""):])
+                    tokens = list(set(tokenize(passage[passage.find(""):])))
                     reference = f"{translate(book)} {chapter}:{verse}"
                     for token in tokens:
-                        if not token in tmp_index:
+                        if token not in tmp_index:
                             tmp_index[token] = []
                         # Don't duplicate references
-                        if reference in tmp_index[token]:
-                            continue
+                        # if reference in tmp_index[token]:
+                        #    continue
                         tmp_index[token].append(reference)
     result.update({name: tmp_index})
 
@@ -68,7 +68,7 @@ def make_index(bibles: dict) -> dict:
     num_processes = multiprocessing.cpu_count() - 1
     manager = multiprocessing.Manager()
     built_index = manager.dict({})
-    versions = bibles.keys()
+    versions = list(bibles.keys())
     pool = multiprocessing.Pool(processes=num_processes)
 
     # Spread out work to the pool
@@ -80,7 +80,25 @@ def make_index(bibles: dict) -> dict:
     pool.join()
 
     # Dereference the dictionary to a normal one per the documentation
-    return built_index._getvalue()
+    index = built_index._getvalue()
+    print("Built main index. Removing some duplicates across versions...")
+    index_copy = index.copy()
+    all_versions = {}
+    for token in index[versions[0]]:
+        for match in index[versions[0]][token]:
+            exists_in_all = True
+            for j in range(1, len(versions)):
+                if token not in index[versions[j]] or match not in index[versions[j]][token]:
+                    exists_in_all = False
+            if exists_in_all:
+                if token not in all_versions:
+                    all_versions[token] = [match]
+                else:
+                    all_versions[token].append(match)
+                for i in range(len(versions)):
+                    index_copy[versions[i]][token].remove(match)
+    index_copy["All"] = all_versions
+    return index_copy
 
 
 if __name__ == '__main__':
@@ -122,7 +140,7 @@ if __name__ == '__main__':
 
     # Normal save
     try:
-        with bz2.open("src/bible_index.json.pbz2", "wb") as data_file:
+        with bz2.open("src/multi_bible_search/bible_index.json.pbz2", "wb") as data_file:
             data_file.write(json.dumps(reference_index, separators=(',', ':')).encode('utf-8'))
     # Testing save
     except FileNotFoundError:

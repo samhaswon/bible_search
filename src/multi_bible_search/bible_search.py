@@ -15,6 +15,10 @@ class BibleSearch(object):
         if debug:
             print("Search index loaded")
 
+        self.__kjv_like = ["AKJV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
+        self.__versions = list(self.__search_index.keys())
+        self.__versions.remove("All")
+
     @staticmethod
     def _tokenize(input_string: str) -> List[str]:
         """
@@ -59,9 +63,15 @@ class BibleSearch(object):
         # Find most likely matches
         all_refs = []
 
-        for token in query_tokens:
-            all_refs.extend(self.__search_index[version].get(token, []))
-            all_refs.extend(self.__search_index["All"].get(token, []))
+        if version not in self.__kjv_like:
+            for token in query_tokens:
+                all_refs.extend(self.__search_index[version].get(token, []))
+                all_refs.extend(self.__search_index["All"].get(token, []))
+        else:
+            for token in query_tokens:
+                all_refs.extend(self.__search_index[version].get(token, []))
+                all_refs.extend(self.__search_index["All"].get(token, []))
+                all_refs.extend(self.__search_index["KJV-like"].get(token, []))
 
         ref_counter = Counter(all_refs)
         ref_counter = sorted(ref_counter.items(), key=lambda x: x[1], reverse=True)
@@ -70,4 +80,4 @@ class BibleSearch(object):
 
     @property
     def versions(self) -> List[str]:
-        return list(self.__search_index.keys())
+        return self.__versions

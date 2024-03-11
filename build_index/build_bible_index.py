@@ -57,6 +57,33 @@ def index_bible(bible, name: str, result) -> None:
     result.update({name: tmp_index})
 
 
+def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
+    """
+    Separates duplicate references as "<combine_to>".
+    :param combine_to: Name to combine references under.
+    :param index: Full reverse index of passages.
+    :param versions: Version list to work with.
+    :return: Reverse index with duplicate references under "<combine_to>"
+    """
+    index_copy = index.copy()
+    all_versions = {}
+    for token in index[versions[0]]:
+        for match in index[versions[0]][token]:
+            exists_in_all = True
+            for j in range(1, len(versions)):
+                if token not in index[versions[j]] or match not in index[versions[j]][token]:
+                    exists_in_all = False
+            if exists_in_all:
+                if token not in all_versions:
+                    all_versions[token] = [match]
+                else:
+                    all_versions[token].append(match)
+                for i in range(len(versions)):
+                    index_copy[versions[i]][token].remove(match)
+    index_copy[combine_to] = all_versions
+    return index_copy
+
+
 def make_index(bibles: dict) -> dict:
     """
     Build the (reverse) src index of the given Bibles.
@@ -81,24 +108,16 @@ def make_index(bibles: dict) -> dict:
 
     # Dereference the dictionary to a normal one per the documentation
     index = built_index._getvalue()
-    print("Built main index. Removing some duplicates across versions...")
-    index_copy = index.copy()
-    all_versions = {}
-    for token in index[versions[0]]:
-        for match in index[versions[0]][token]:
-            exists_in_all = True
-            for j in range(1, len(versions)):
-                if token not in index[versions[j]] or match not in index[versions[j]][token]:
-                    exists_in_all = False
-            if exists_in_all:
-                if token not in all_versions:
-                    all_versions[token] = [match]
-                else:
-                    all_versions[token].append(match)
-                for i in range(len(versions)):
-                    index_copy[versions[i]][token].remove(match)
-    index_copy["All"] = all_versions
-    return index_copy
+
+    # Separate some duplicates
+    print("Built main index. Removing some duplicates across all versions...")
+    index = separate_duplicates(index, versions, "All")
+
+    # Separate duplicates in KJV-Like Bibles
+    print("Built secondary index. Removing some duplicates across KJV-like versions...")
+    kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
+    index = separate_duplicates(index, kjv_like, "KJV-like")
+    return index
 
 
 if __name__ == '__main__':
@@ -140,7 +159,7 @@ if __name__ == '__main__':
 
     # Normal save
     try:
-        with bz2.open("src/multi_bible_search/bible_index.json.pbz2", "wb") as data_file:
+        with bz2.open("../src/multi_bible_search/bible_index.json.pbz2", "wb") as data_file:
             data_file.write(json.dumps(reference_index, separators=(',', ':')).encode('utf-8'))
     # Testing save
     except FileNotFoundError:

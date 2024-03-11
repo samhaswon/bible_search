@@ -36,7 +36,9 @@ class TestPerf(unittest.TestCase):
               f"{(end - start) / count:.8f}s per search average")
 
     def test_profile(self):
-        print(getsize(self.bible_search) / (1024 ** 2))
+        new_size = getsize(self.bible_search) / (1024 ** 2)
+        print(f"{new_size:.4f} MiB")
+        print(f"Reduction: {1106.2344970703125 - new_size:.4f} MiB")
 
 
 if __name__ == '__main__':

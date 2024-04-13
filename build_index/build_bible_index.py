@@ -3,6 +3,7 @@ from src.multi_bible_search.translate import translate
 import bz2
 import json
 import multiprocessing
+import re
 import time
 from typing import List
 
@@ -13,7 +14,8 @@ def remove_punctuation(input_string: str) -> str:
     :param input_string: String to process
     :return: cleaned string
     """
-    return ''.join(x for x in input_string if x.isalpha() or x.isspace())
+    return ''.join(x for x in re.sub(r"[\u0080-\uffef]s?|'s?", "", input_string)
+                   if (x.isalpha() or x.isspace()))
 
 
 def tokenize(input_string: str) -> List[str]:
@@ -29,7 +31,7 @@ def index_bible(bible, name: str, result) -> None:
     """
     Builds the (reverse) index of a given version of the Bible.
     :param bible: Bible object used for indexing.
-    :param name: Short name of the version being indexed.
+    :param name: The Short name of the version being indexed.
     :param result: Resulting dictionary to add the version's index to.
     :return: None
     """
@@ -43,10 +45,16 @@ def index_bible(bible, name: str, result) -> None:
             # Go through the verses
             for heading in passage_result.keys():
                 # Tokenize each verse, adding its reference
+                previous_verse = 1
                 for passage in passage_result[heading]:
-                    verse = passage[0:passage.find(" ")]
-                    tokens = list(set(tokenize(passage[passage.find(""):])))
-                    reference = f"{translate(book)} {chapter}:{verse}"
+                    try:
+                        verse = int(passage[0:passage.find(" ")])
+                    except ValueError:
+                        verse = previous_verse
+                    else:
+                        previous_verse = verse
+                    tokens = list(set(tokenize(passage[passage.find(" "):])))
+                    reference = translate(book, chapter, verse)
                     for token in tokens:
                         if token not in tmp_index:
                             tmp_index[token] = []
@@ -73,6 +81,7 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
             for j in range(1, len(versions)):
                 if token not in index[versions[j]] or match not in index[versions[j]][token]:
                     exists_in_all = False
+                    break
             if exists_in_all:
                 if token not in all_versions:
                     all_versions[token] = [match]
@@ -117,6 +126,32 @@ def make_index(bibles: dict) -> dict:
     print("Built secondary index. Removing some duplicates across KJV-like versions...")
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
     index = separate_duplicates(index, kjv_like, "KJV-like")
+
+    # Separate duplicates of contemporary versions
+    # print("Building tertiary index. Removing some duplicates across non-KJV-like versions...")
+    # 25.6 MB
+    # other = ["ASV", "BSB", "AMP", "CSB", "ESV", "EBR", "LSV", "NASB 1995", "NET", "NIV 1984", "NIV 2011", "RSV", "NLT"]
+    # 25.5 MB
+    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "RSV", "NKJV"]
+    # 25.4 MB
+    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "RSV", "NKJV", "NET"]
+    # 25.3 MB
+    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV"]
+    # 25.3 MB
+    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "LSV", "NKJV", "NET", "RSV", "RWV"]
+    # 25.1 MB
+    # other = ["AMP", "ASV", "BSB", "CSB", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV"]
+    # 25.0 MB
+    # other = ["AMP", "ASV", "BSB", "CSB", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV", "WEB", "YLT"]
+    # 24.6 MB
+    # other = ["AMP", "ASV", "BSB", "CSB", "Darby", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV", "WEB", "YLT"]
+    # other = ["AMP", "ASV", "BSB", "CSB", "Darby", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV", "WEB", "YLT"]
+    # index = separate_duplicates(index, other, "Other")
+
+    # print("Building quaternary index. Removing some duplicates across paraphrase translations...")
+    # 24.7 MB
+    # paraphrase = ["MSG", "NIV 1984", "NIV 2011"]
+    # index = separate_duplicates(index, paraphrase, "paraphrase")
     return index
 
 

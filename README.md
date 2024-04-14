@@ -31,6 +31,16 @@ The results of each query are ranked by the number of keyword occurrences.
 
 If a query is made with no matches, say "notawordinthebible," the result of the query will be a list of length 0. 
 
+### Preloading an Index
+
+Versions are automatically loaded as needed, but you may wish to preload a version for the sake of speed. 
+
+An index of a particular version can be preloaded with the `load()` method. Simply pPass the version identifier as a string to load it.
+
+Remember that capitalization is important when using this method.
+
+You may also preload all versions by simply calling the `load_all()` method. 
+
 ## Supported Versions
 
 Supported versions can be listed with

@@ -32,11 +32,12 @@ rbooks = {
 def translate(book: str, chapter: int, verse: int) -> int:
     """
     Get the (from 1) index of a book of the Bible.
-    :param book: book name.
-    :return: index of the book.
+    :param book: The book name.
+    :param chapter: The chapter reference.
+    :param verse: The verse reference.
+    :return: Index of the book.
     """
-    reference = books[book] * 1_000_000 + chapter * 1_000 + verse
-    return reference
+    return books[book] * 1_000_000 + chapter * 1_000 + verse
 
 
 def rtranslate(reference: int) -> str:

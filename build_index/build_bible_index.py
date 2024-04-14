@@ -22,14 +22,14 @@ def tokenize(input_string: str) -> List[str]:
     """
     Tokenizes a string based on spaces
     :param input_string: string to tokenize
-    :return: list of lowercase tokens (words) in the string
+    :return: a list of lowercase tokens (words) in the string
     """
     return remove_punctuation(input_string.lower()).split()
 
 
 def index_bible(bible, name: str, result) -> None:
     """
-    Builds the (reverse) index of a given version of the Bible.
+    Builds the (reverse) index of a given Bible version.
     :param bible: Bible object used for indexing.
     :param name: The Short name of the version being indexed.
     :param result: Resulting dictionary to add the version's index to.
@@ -155,6 +155,17 @@ def make_index(bibles: dict) -> dict:
     return index
 
 
+def save(data: dict, key: str) -> None:
+    # Normal save
+    try:
+        with bz2.open(f"../src/multi_bible_search/data/{key}.json.pbz2", "wb") as data_file:
+            data_file.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+    # Testing save
+    except FileNotFoundError:
+        with bz2.open(f"./data/{key}.json.pbz2", "wb") as data_file:
+            data_file.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+
+
 if __name__ == '__main__':
     # Bible object initialization
     bibles = {
@@ -192,6 +203,7 @@ if __name__ == '__main__':
 
     reference_index = make_index(bibles)
 
+    """
     # Normal save
     try:
         with bz2.open("../src/multi_bible_search/bible_index.json.pbz2", "wb") as data_file:
@@ -200,7 +212,9 @@ if __name__ == '__main__':
     except FileNotFoundError:
         with bz2.open("./bible_index.json.pbz2", "wb") as data_file:
             data_file.write(json.dumps(reference_index, separators=(',', ':')).encode('utf-8'))
-
+    """
+    for key in reference_index.keys():
+        save(reference_index[key], key)
     # How long did this take? Because this takes a while to run.
     end = time.perf_counter()
     print(f"Index time: {end - start:.4f}")

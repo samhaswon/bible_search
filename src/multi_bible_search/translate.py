@@ -29,19 +29,21 @@ rbooks = {
     }
 
 
-def translate(book: str) -> int:
+def translate(book: str, chapter: int, verse: int) -> int:
     """
     Get the (from 1) index of a book of the Bible.
-    :param book: book name.
-    :return: index of the book.
+    :param book: The book name.
+    :param chapter: The chapter reference.
+    :param verse: The verse reference.
+    :return: Index of the book.
     """
-    return books[book]
+    return books[book] * 1_000_000 + chapter * 1_000 + verse
 
 
-def rtranslate(book: int) -> str:
+def rtranslate(reference: int) -> str:
     """
     Gets the name of a book based on its index. Opposite of translate()
-    :param book: index of book name to find.
-    :return: book name.
+    :param reference: The reference to translate.
+    :return: The reference as a string.
     """
-    return rbooks[book]
+    return f"{rbooks[reference // 1_000_000]} {reference // 1_000 % 1_000}:{reference % 1000}"

@@ -20,9 +20,9 @@ def remove_punctuation(input_string: str) -> str:
 
 def tokenize(input_string: str) -> List[str]:
     """
-    Tokenizes a string based on spaces
-    :param input_string: string to tokenize
-    :return: a list of lowercase tokens (words) in the string
+    Tokenizes a string based on its spaces.
+    :param input_string: The string to tokenize.
+    :return: A list of lowercase tokens (words) in the string.
     """
     return remove_punctuation(input_string.lower()).split()
 
@@ -58,9 +58,6 @@ def index_bible(bible, name: str, result) -> None:
                     for token in tokens:
                         if token not in tmp_index:
                             tmp_index[token] = []
-                        # Don't duplicate references
-                        # if reference in tmp_index[token]:
-                        #    continue
                         tmp_index[token].append(reference)
     result.update({name: tmp_index})
 
@@ -96,8 +93,8 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
 def make_index(bibles: dict) -> dict:
     """
     Build the (reverse) src index of the given Bibles.
-    :param bibles: dictionary of Bible objects where the name of the version is the key.
-    :return: Dictionary of src index for each version
+    :param bibles: A dictionary of Bible objects where the name of the version is the key.
+    :return: Dictionary of src index for each version.
     """
 
     # Initialization
@@ -127,31 +124,6 @@ def make_index(bibles: dict) -> dict:
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
     index = separate_duplicates(index, kjv_like, "KJV-like")
 
-    # Separate duplicates of contemporary versions
-    # print("Building tertiary index. Removing some duplicates across non-KJV-like versions...")
-    # 25.6 MB
-    # other = ["ASV", "BSB", "AMP", "CSB", "ESV", "EBR", "LSV", "NASB 1995", "NET", "NIV 1984", "NIV 2011", "RSV", "NLT"]
-    # 25.5 MB
-    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "RSV", "NKJV"]
-    # 25.4 MB
-    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "RSV", "NKJV", "NET"]
-    # 25.3 MB
-    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV"]
-    # 25.3 MB
-    # other = ["AMP", "ASV", "CSB", "ESV", "NASB 1995", "LSV", "NKJV", "NET", "RSV", "RWV"]
-    # 25.1 MB
-    # other = ["AMP", "ASV", "BSB", "CSB", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV"]
-    # 25.0 MB
-    # other = ["AMP", "ASV", "BSB", "CSB", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV", "WEB", "YLT"]
-    # 24.6 MB
-    # other = ["AMP", "ASV", "BSB", "CSB", "Darby", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV", "WEB", "YLT"]
-    # other = ["AMP", "ASV", "BSB", "CSB", "Darby", "ESV", "NASB 1995", "NKJV", "NET", "RSV", "RWV", "WEB", "YLT"]
-    # index = separate_duplicates(index, other, "Other")
-
-    # print("Building quaternary index. Removing some duplicates across paraphrase translations...")
-    # 24.7 MB
-    # paraphrase = ["MSG", "NIV 1984", "NIV 2011"]
-    # index = separate_duplicates(index, paraphrase, "paraphrase")
     return index
 
 
@@ -203,16 +175,7 @@ if __name__ == '__main__':
 
     reference_index = make_index(bibles)
 
-    """
-    # Normal save
-    try:
-        with bz2.open("../src/multi_bible_search/bible_index.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(reference_index, separators=(',', ':')).encode('utf-8'))
-    # Testing save
-    except FileNotFoundError:
-        with bz2.open("./bible_index.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(reference_index, separators=(',', ':')).encode('utf-8'))
-    """
+    # Save each version's index as a separate file to be able to load them independently.
     for key in reference_index.keys():
         save(reference_index[key], key)
     # How long did this take? Because this takes a while to run.

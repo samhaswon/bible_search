@@ -243,9 +243,6 @@ static PyObject* rtranslate(PyObject* self, PyObject* args) {
             break;
     }
 
-    // string buffer for the numbers of the reference
-    char num_ref_buf[4];
-
     // Add the chapter number and colon
     ref_to_str(chapter, reference_buffer);
     strcat(reference_buffer, ":");

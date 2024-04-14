@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools~=69.1.1"]
+requires = ["setuptools~=69.5.1", "wheel~=0.43.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "multi_bible_search"
-version = "0.0.7"
+version = "0.0.8"
 authors = [
   { name="Samuel Howard" },
 ]
@@ -18,7 +18,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-dependencies = ["Brotli"]
+# dependencies = ["Brotli"]
 
 [project.urls]
 "Homepage" = "https://github.com/samhaswon/bible_search"

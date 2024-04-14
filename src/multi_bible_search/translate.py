@@ -46,7 +46,4 @@ def rtranslate(reference: int) -> str:
     :param reference: The reference to translate.
     :return: The reference as a string.
     """
-    book: str = rbooks[reference // 1_000_000]
-    chapter = reference // 1_000 % 1_000
-    verse = reference % 1000
-    return f"{book} {chapter}:{verse}"
+    return f"{rbooks[reference // 1_000_000]} {reference // 1_000 % 1_000}:{reference % 1000}"

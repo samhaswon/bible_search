@@ -34,6 +34,10 @@ class TestSearch(unittest.TestCase):
         self.assertIn("ESV", self.bible_search.versions)
         self.assertIn("ASV", self.bible_search.versions)
 
+    def test_load_all(self):
+        self.bible_search.load_all()
+        self.assertEqual(self.bible_search.loaded.sort(), self.bible_search.versions.sort())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -27,6 +27,7 @@ class TestPerf(unittest.TestCase):
 
     def test_perf(self):
         count = 20000
+        self.bible_search.load('KJV')
         start = time.perf_counter()
         for i in range(count):
             # Do some searching
@@ -36,9 +37,14 @@ class TestPerf(unittest.TestCase):
               f"{(end - start) / count:.8f}s per search average")
 
     def test_profile(self):
-        new_size = getsize(self.bible_search) / (1024 ** 2)
-        print(f"{new_size:.4f} MiB")
-        print(f"Reduction: {1106.2344970703125 - new_size:.4f} MiB")
+        self.bible_search.load('KJV')
+        new_kjv_size = getsize(self.bible_search) / (1024 ** 2)
+        self.bible_search.load_all()
+        new_all_size = getsize(self.bible_search) / (1024 ** 2)
+        print(f"KJV Only: {new_kjv_size:.4f} MiB")
+        print(f"All: {new_all_size:.4f} MiB")
+        print(f"KJV reduction: {1106.2344970703125 - new_kjv_size:.4f} MiB")
+        print(f"All reduction: {1106.2344970703125 - new_all_size:.4f} MiB")
 
 
 if __name__ == '__main__':

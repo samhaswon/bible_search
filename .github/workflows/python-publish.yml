@@ -78,10 +78,16 @@ jobs:
           package-dir: multi_bible_search.tar.gz
           output-dir: wheelhouse
 
+      - id: randomized
+        name: Generate randomness for artifact
+        run: |
+          num=$((RANDOM)) 
+          echo "num=$num" >> "$GITHUB_OUTPUT"
+
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ matrix.arch }}-${{ matrix.python_tag[:-2] }}
+          name: dist-${{ matrix.arch }}-${{ steps.randomized.num }}
           path: ./wheelhouse/*.whl
   deploy:
     needs: [build_wheels_windows, build_sdist]

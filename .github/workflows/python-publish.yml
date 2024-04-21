@@ -81,8 +81,9 @@ jobs:
       - id: randomized
         name: Generate randomness for artifact
         run: |
-          num=$((RANDOM)) 
-          echo "num=$num" >> "$GITHUB_OUTPUT"
+          $num = Get-Random
+          Write-Host "num=$num"
+          $num | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4

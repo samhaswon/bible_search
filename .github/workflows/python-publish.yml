@@ -34,7 +34,7 @@ jobs:
           pip install build
           python -m build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v3
         with:
           path: dist/*.tar.gz
   build_wheels_windows:
@@ -78,16 +78,9 @@ jobs:
           package-dir: multi_bible_search.tar.gz
           output-dir: wheelhouse
 
-      - id: randomized
-        name: Generate randomness for artifact
-        run: |
-          $num = Get-Random
-          echo "num=$num" >> "$GITHUB_OUTPUT"
-
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: dist-${{ matrix.arch }}-${{ steps.randomized.num }}
           path: ./wheelhouse/*.whl
   deploy:
     needs: [build_wheels_windows, build_sdist]
@@ -97,12 +90,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/upload-artifact/merge@v4
-        name: Merge Artifacts
-        with:
-          name: dist
-          pattern: dist-*
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v3
         with:
           name: artifact
           path: dist

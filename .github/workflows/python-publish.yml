@@ -78,6 +78,11 @@ jobs:
           package-dir: multi_bible_search.tar.gz
           output-dir: wheelhouse
 
+      - name: Random sleep
+        run: |
+          $randomSeconds = Get-Random -Minimum 0 -Maximum 61
+          Start-Sleep -Seconds $randomSeconds
+
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:

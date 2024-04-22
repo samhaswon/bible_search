@@ -38,13 +38,11 @@ jobs:
         with:
           path: dist/*.tar.gz
   build_wheels_windows:
-    name: Build wheel on windows-latest/${{matrix.arch}}/${{matrix.python_tag}}
+    name: Build wheel on windows-latest
     needs: [build_sdist]
     runs-on: windows-latest
     strategy:
       fail-fast: false
-      matrix:
-        arch: [auto32, auto64, ARM64]
 
     steps:
       - uses: actions/download-artifact@v3
@@ -62,12 +60,6 @@ jobs:
         with:
           package-dir: multi_bible_search.tar.gz
           output-dir: wheelhouse
-
-      - name: Random sleep
-        run: |
-          $randomSeconds = Get-Random -Minimum 0 -Maximum 121
-          echo $randomSeconds
-          Start-Sleep -Seconds $randomSeconds
 
       - name: Upload wheels
         uses: actions/upload-artifact@v3

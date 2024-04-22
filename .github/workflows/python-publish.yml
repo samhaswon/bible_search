@@ -45,21 +45,6 @@ jobs:
       fail-fast: false
       matrix:
         arch: [auto32, auto64, ARM64]
-        python_tag: ["cp38-*", "cp39-*", "cp310-*", "cp311-*", "cp312-*", "pp38-*", "pp39-*"]
-        exclude:
-          # PyPy only supports x86_64 on Windows
-          - arch: auto32
-            python_tag: "pp38-*"
-          - arch: auto32
-            python_tag: "pp39-*"
-
-          # ARM64 only supported only supported on cpython >= 3.9
-          - arch: ARM64
-            python_tag: "pp38-*"
-          - arch: ARM64
-            python_tag: "pp39-*"
-          - arch: ARM64
-            python_tag: "cp38-*"
 
     steps:
       - uses: actions/download-artifact@v3

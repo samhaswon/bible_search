@@ -80,7 +80,7 @@ jobs:
 
       - name: Random sleep
         run: |
-          $randomSeconds = Get-Random -Minimum 0 -Maximum 61
+          $randomSeconds = Get-Random -Minimum 0 -Maximum 121
           Start-Sleep -Seconds $randomSeconds
 
       - name: Upload wheels

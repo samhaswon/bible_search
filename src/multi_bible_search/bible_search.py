@@ -17,7 +17,14 @@ class BibleSearch(object):
         :param preload: List of versions to preload.
         :param debug: Flag for indicating when the specified and common indices are loaded.
         """
+        # Some attributes
         self.__search_index: dict = {}
+        self.__both_niv: set = {"NIV 1984", "NIV 2011"}
+        self.__kjv_like: set = {"AKJV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
+        self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
+                                'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
+                                'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
+
         # Preload common indices
         self._load_version("All", preload=True)
         self._load_version("KJV-like", preload=True)
@@ -30,11 +37,6 @@ class BibleSearch(object):
 
         if debug:
             print("Search index loaded")
-
-        self.__kjv_like: set = {"AKJV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
-        self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
-                                'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
-                                'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
 
     @staticmethod
     def _tokenize(input_string: str) -> List[str]:
@@ -72,6 +74,8 @@ class BibleSearch(object):
         :param version: The version to preload.
         :return: None
         """
+        if version in self.__both_niv:
+            self._load_version("NIV", preload=True)
         base_path = os.path.dirname(os.path.abspath(__file__))
         with bz2.open(f"{base_path}/data/{version}.json.pbz2", "rt", encoding='utf-8') as data_file:
             self.__search_index[version] = json.load(data_file)
@@ -97,6 +101,18 @@ class BibleSearch(object):
             if version not in self.__loaded:
                 self._load_version(version)
 
+    def unload_version(self, version: str) -> None:
+        """
+        Unload a version's index from memory.
+        :param version: The version to remove.
+        :return: None
+        :raises Exception: If the version is invalid, raises an exception.
+        """
+        try:
+            del self.__search_index[version]
+        except KeyError:
+            raise Exception(f"Invalid version {version}")
+
     def search(self, query: str, version="KJV"):
         """
         Search for a passage in the Bible.
@@ -117,6 +133,11 @@ class BibleSearch(object):
                 all_refs.extend(self.__search_index[version].get(token, []))
                 all_refs.extend(self.__search_index["All"].get(token, []))
                 all_refs.extend(self.__search_index["KJV-like"].get(token, []))
+        elif version in self.__both_niv:
+            for token in query_tokens:
+                all_refs.extend(self.__search_index[version].get(token, []))
+                all_refs.extend(self.__search_index["NIV"].get(token, []))
+                all_refs.extend(self.__search_index["All"].get(token, []))
         else:
             for token in query_tokens:
                 all_refs.extend(self.__search_index[version].get(token, []))

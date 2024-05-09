@@ -1,10 +1,11 @@
 #include <Python.h>
 #include <string.h>
+#include <stdint.h>
 
 // This is an ever so slight, single use optimization over itoa
-void ref_to_str(int num, char* str) {
+void ref_to_str(uint_fast16_t num, char* str) {
     // This covers the range of possible chapter and verse values of a reference. 
-    static const char* numbers[] = {
+    static const char* numbers[] = { "\0", // NULL sentinel
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
         "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
         "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
@@ -22,21 +23,23 @@ void ref_to_str(int num, char* str) {
         "141", "142", "143", "144", "145", "146", "147", "148", "149", "150",
         "151", "152", "153", "154", "155", "156", "157", "158", "159", "160",
         "161", "162", "163", "164", "165", "166", "167", "168", "169", "170",
-        "171", "172", "173", "174", "175", "176"
+        "171", "172", "173", "174", "175", "176", 0 // NULL sentinel
     };
     
-    strcat(str, numbers[num - 1]);
+    strcat(str, numbers[num]);
 }
 
 static PyObject* rtranslate(PyObject* self, PyObject* args) {
     long reference;
-    const char reference_buffer[20];    // Buffer for up to the longest reference
+    // Buffer for up to the longest reference would be 20,
+    // but it is bumped up to 24 for the longest invalid reference
+    const char reference_buffer[24];
     if (!PyArg_ParseTuple(args, "l", &reference))
         return NULL;
-    int book = reference / 1000000;       // Extract the part of the number that represents the book
-    int remainder = reference % 1000000;  // Extract the remaining part after removing the book
-    int chapter = remainder / 1000;       // Extract the chapter reference
-    int verse = remainder % 1000;         // Extract the verse reference
+    uint_fast8_t book = reference / 1000000;        // Extract the part of the number that represents the book
+    uint_fast16_t remainder = reference % 1000000;  // Extract the remaining part after removing the book
+    uint_fast16_t chapter = remainder / 1000;       // Extract the chapter reference
+    uint_fast16_t verse = remainder % 1000;         // Extract the verse reference
 
     // Add to the reference buffer based on the book number
     switch(book) {
@@ -239,9 +242,11 @@ static PyObject* rtranslate(PyObject* self, PyObject* args) {
             strcpy(reference_buffer, "Revelation ");
             break;
         default:
-            strcpy(reference_buffer, "Unknown ");
-            break;
+            return Py_None;
     }
+
+    // Quick bounds check
+    if (verse > 176 || chapter > 176) {return Py_None;}
 
     // Add the chapter number and colon
     ref_to_str(chapter, reference_buffer);

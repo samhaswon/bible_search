@@ -37,6 +37,9 @@ def translate(book: str, chapter: int, verse: int) -> int:
     :param verse: The verse reference.
     :return: Index of the book.
     """
+    # quick bounds check
+    assert verse <= 176
+    assert chapter <= 150
     return books[book] * 1_000_000 + chapter * 1_000 + verse
 
 

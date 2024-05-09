@@ -18,7 +18,7 @@ class TestTranslate(unittest.TestCase):
                     self.assertEqual(f"{book} {chapter}:{verse}", crtranslate(translate(book, chapter, verse)))
 
     def test_perf(self):
-        count = 2_000_000
+        count = 20_000_000
         reference: int = translate("John", 11, 35)
 
         py_start = time.perf_counter()
@@ -36,7 +36,26 @@ class TestTranslate(unittest.TestCase):
 
         print(f"Python time: {py_time:.17f}s ({py_time / count * 10 ** 9:.4f}ns average)\n"
               f"C time:      {c_time:.17f}s ({c_time / count * 10 ** 9:.4f}ns average)\n"
-              f"{(c_time - py_time) / py_time * 100}%")
+              f"{(c_time - py_time) / py_time * 100:.4f}%")
+
+    def test_out_of_bounds(self):
+        """
+        Make sure we stay within the buffer.
+        """
+        # Out of bounds and should return None
+        self.assertEqual(None, crtranslate(46_010_224))
+
+        # Invalid ref, but shouldn't buffer overflow
+        self.assertEqual("1 Thessalonians 176:176", crtranslate(52_176_176))
+
+        # Test some other edge cases
+        self.assertEqual(None, crtranslate(99_999_999))
+        self.assertEqual(None, crtranslate(999_999))
+        self.assertEqual(None, crtranslate(1_999_999))
+        self.assertEqual(None, crtranslate(0))
+
+        # Test invalid verse and chapter number
+        self.assertEqual("Genesis :", crtranslate(1_000_000))
 
 
 if __name__ == '__main__':

@@ -38,6 +38,14 @@ class TestSearch(unittest.TestCase):
         self.bible_search.load_all()
         self.assertEqual(self.bible_search.loaded.sort(), self.bible_search.versions.sort())
 
+    def test_unload_version(self):
+        self.bible_search.load("KJV")
+        self.bible_search.unload_version("KJV")
+
+        # Should raise an Exception if we try to unload it again.
+        with self.assertRaises(Exception):
+            self.bible_search.unload_version("KJV")
+
 
 if __name__ == '__main__':
     unittest.main()

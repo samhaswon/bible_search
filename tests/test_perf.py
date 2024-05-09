@@ -33,8 +33,9 @@ class TestPerf(unittest.TestCase):
             # Do some searching
             self.bible_search.search("Jesus wept")
         end = time.perf_counter()
+        avg_time = (end - start) / count
         print(f"Total: {end - start:.4f}s\n"
-              f"{(end - start) / count:.8f}s per search average")
+              f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
 
     def test_profile(self):
         self.bible_search.load('KJV')

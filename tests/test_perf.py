@@ -26,7 +26,7 @@ class TestPerf(unittest.TestCase):
         self.bible_search = BibleSearch()
 
     def test_perf(self):
-        count = 20000
+        count = 200_000
         self.bible_search.load('KJV')
         start = time.perf_counter()
         for i in range(count):

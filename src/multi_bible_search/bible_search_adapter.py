@@ -1,14 +1,8 @@
 import bz2
-from collections import Counter
 import json
 import os
 from typing import List, Union
-# Try to use the C version of rtranslate
-try:
-    from ctranslate.ctranslate import rtranslate
-# Otherwise, use the pure Python implementation (~45% slower)
-except ImportError:
-    from .translate import rtranslate
+from .multi_bible_search import BibleSearch as cBibleSearch
 
 
 class BibleSearch(object):
@@ -18,7 +12,7 @@ class BibleSearch(object):
         :param debug: Flag for indicating when the specified and common indices are loaded.
         """
         # Some attributes
-        self.__search_index: dict = {}
+        self.__c_search = cBibleSearch()
         self.__both_niv: set = {"NIV 1984", "NIV 2011"}
         self.__kjv_like: set = {"AKJV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
         self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
@@ -78,7 +72,7 @@ class BibleSearch(object):
             self._load_version("NIV", preload=True)
         base_path = os.path.dirname(os.path.abspath(__file__))
         with bz2.open(f"{base_path}/data/{version}.json.pbz2", "rt", encoding='utf-8') as data_file:
-            self.__search_index[version] = json.load(data_file)
+            self.__c_search.load(json.load(data_file), version)
         if not preload:
             self.__loaded.add(version)
 
@@ -108,10 +102,7 @@ class BibleSearch(object):
         :return: None
         :raises Exception: If the version is invalid, raises an exception.
         """
-        try:
-            del self.__search_index[version]
-        except KeyError:
-            raise Exception(f"Invalid version {version}")
+        raise NotImplemented("This is not implemented in C yet")
 
     def search(self, query: str, version="KJV"):
         """
@@ -123,35 +114,12 @@ class BibleSearch(object):
         # Load the version if it is not already loaded
         if version not in self.__loaded:
             self.load(version)
-        query_tokens = self._tokenize(query)
-
-        # Find most likely matches
-        all_refs = []
-
-        if version in self.__kjv_like:
-            for token in query_tokens:
-                all_refs.extend(self.__search_index[version].get(token, []))
-                all_refs.extend(self.__search_index["All"].get(token, []))
-                all_refs.extend(self.__search_index["KJV-like"].get(token, []))
-        elif version in self.__both_niv:
-            for token in query_tokens:
-                all_refs.extend(self.__search_index[version].get(token, []))
-                all_refs.extend(self.__search_index["NIV"].get(token, []))
-                all_refs.extend(self.__search_index["All"].get(token, []))
-        else:
-            for token in query_tokens:
-                all_refs.extend(self.__search_index[version].get(token, []))
-                all_refs.extend(self.__search_index["All"].get(token, []))
-
-        ref_counter = Counter(all_refs)
-        ref_counter = sorted(ref_counter.items(), key=lambda x: x[1], reverse=True)
-        ranked = self._ranked(ref_counter, len(query_tokens))
-        return [rtranslate(ref[0]) for ref in ranked]
+        return self.__c_search.search(query.lower(), version)
 
     @property
     def loaded(self):
         """
-        A list of the versions currently loaded in the search objects. This does not include common indices.
+        A list of the versions currently loaded in the search object. This does not include common indices.
         """
         return list(self.__loaded)
 

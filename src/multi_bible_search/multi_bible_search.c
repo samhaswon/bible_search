@@ -674,28 +674,31 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
             // Add results from all
             if (result_all != NULL) {
-                memcpy(&token_result_list[result_count], result_all->value, result_all->length * sizeof(long));
+                //memcpy(&token_result_list[result_count], result_all->value, result_all->length * sizeof(long));
                 /*for (size_t i = 0; i < result_all->length; i++) {
                     token_result_list[result_count + i] = result_all->value[i];
                 }*/
+                merge(token_result_list, result_count, result_all->value, result_all->length);
                 result_count += result_all->length;
             }
 
             // Get results for version:
             if (result_version != NULL) {
-                memcpy(&token_result_list[result_count], result_version->value, result_version->length * sizeof(long));
+                //memcpy(&token_result_list[result_count], result_version->value, result_version->length * sizeof(long));
                 /*for (size_t i = 0; i < result_version->length; i++) {
                     token_result_list[result_count + i] = result_version->value[i];
                 }*/
+                merge(token_result_list, result_count, result_version->value, result_version->length);
                 result_count += result_version->length;
             }
 
             // If applicable, get results from extra index:
             if (result_combined != NULL) {
-                memcpy(&token_result_list[result_count], result_combined->value, result_combined->length * sizeof(long));
+                //memcpy(&token_result_list[result_count], result_combined->value, result_combined->length * sizeof(long));
                 /*for (size_t i = 0; i < result_combined->length; i++) {
                     token_result_list[result_count + i] = result_combined->value[i];
                 }*/
+                merge(token_result_list, result_count, result_combined->value, result_combined->length);
                 result_count += result_combined->length;
             }
         }
@@ -715,7 +718,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         printf("Failed to tokenize query\n");
     }
     //printf("Ranking\n");
-    quickSort(token_result_list, 0, token_result_list_len - 1);
+    //quickSort(token_result_list, 0, token_result_list_len - 1);
     //printf("Sorted\n");
     result_count = rank(token_result_list, token_result_list_len, num_tokens);
     //printf("Num tokens: %d; result count: %zd, result list len: %zd\n", num_tokens, result_count, token_result_list_len);

@@ -6,98 +6,94 @@
 #include <string.h>
 #include <stdint.h>
 
-// function to swap elements
-static inline void swap(long *a, long *b) {
-  long t = *a;
-  *a = *b;
-  *b = t;
+/*
+ * Merge two (individually sorted) lists together.
+ * Assumes that the size of `dest` is `dest_len + src_len` 
+ */
+void merge(long* dest, size_t dest_len, long* src, size_t src_len) {
+    // Copy of the old destination array
+    long *old_dest = (long *) malloc(dest_len * sizeof(long));
+    if (!old_dest) {
+        printf("Memory allocation failure\n");
+        return;
+    }
+    memcpy(old_dest, dest, dest_len * sizeof(long));
+
+    size_t i = 0,	// Iterator for `old_dest` array
+	       j = 0, 	// Iterator for `src` array
+		   k = 0;	// Iterator for `dest` array
+
+	// Merge the two arrays low to high
+    while (i < dest_len && j < src_len) {
+        if (old_dest[i] <= src[j]) {
+            dest[k] = old_dest[i];
+            i++;
+        }
+        else {
+            dest[k] = src[j];
+            j++;
+        }
+        k++;
+    }
+
+	// Copy what may remain in either array after merging
+    if (i < dest_len) {
+        memcpy(&dest[k], &old_dest[i], (dest_len - i) * sizeof(long));
+    }
+    if (j < src_len) {
+        memcpy(&dest[k], &src[j], (src_len - j) * sizeof(long));
+    }
+
+    // Free the old destination array
+    free(old_dest);
 }
 
-// function to find the partition position
-static inline int partition(long *array, int low, int high) {
-  
-	// select the rightmost element as pivot
-	long pivot = array[high];
-
-	// pointer for greater element
-	int i = (low - 1);
-
-	for (int j = low; j < high; j++) {
-		if (array[j] <= pivot) {
-			i++;
-			// swap element at i with element at j
-			swap(&array[i], &array[j]);
-		}
-	}
-
-	// swap the pivot element with the greater element at i
-	swap(&array[i + 1], &array[high]);
-
-	// return the partition point
-	return (i + 1);
-}
-
-void quickSort(long *array, int low, int high) {
-	if (low < high) {
-
-		// find the pivot element such that
-		// elements smaller than pivot are on left of pivot
-		// elements greater than pivot are on right of pivot
-		int pi = partition(array, low, high);
-
-		// recursive call on the left of pivot
-		quickSort(array, low, pi - 1);
-
-		// recursive call on the right of pivot
-		quickSort(array, pi + 1, high);
-	}
-}
-
+// Rank elements in the result `array` by their frequency
 static inline int rank(long *array, size_t size, int target) {
 	if (size == 0 || target == 0) {
 		return size;
 	}
-	//printf("Rank 'em, size %zd\n", size);
+	// Array of the most likely search results
 	long *most_likely = (long *) malloc(size * sizeof(long));
 	if (most_likely == NULL) {
 		// Attempt to fail gracefully
 		printf("Memory allocation error a!\n");
 		return size;
 	}
+	// Array of the other results
 	long *others = (long *) malloc(size * sizeof(long));
 	if (others == NULL) {
 		// Attempt to fail gracefully
 		printf("Memory allocation error b!\n");
 		return size;
 	}
-	//printf("Malloc'd\n");
-	int likely_count = 0, others_count = 0;
+	
+	int likely_count = 0, 	// Size of the likely array
+		others_count = 0;	// Size of the others array
 
-	if (array == NULL) {
-		// Attempt to fail gracefully
-		printf("Memory allocation error!\n");
-		return size;
-	}
-
+	// Find duplicates of the desired count
 	for (uint_fast32_t i = 0; i < size; i++) {
 		uint_fast32_t count = 1;
+		// Find the count of this element
 		while (i + 1 < size && array[i] == array[i + 1]) {
 			count++;
 			i++;
 		}
+		// If it's what we're looking for, add it to the likely array
 		if (count == target) {
 			most_likely[likely_count++] = array[i];
 		}
+		// Otherwise, put it in others
 		else {
 			others[others_count++] = array[i];
 		}
 	}
-	//printf("Likely: %d, others %d\n", likely_count, others_count);
 
+	// Copy the temporary arrays into the old one
 	memcpy(array, most_likely, likely_count * sizeof(long));
 	memcpy(&array[likely_count], others, others_count * sizeof(long));
 
-
+	// Free dynamically allocated memory
 	free(most_likely);
 	free(others);
 	return (likely_count + others_count);

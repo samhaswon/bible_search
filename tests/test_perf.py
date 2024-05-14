@@ -1,4 +1,4 @@
-from src.multi_bible_search.bible_search import BibleSearch
+from src.multi_bible_search.bible_search_adapter import BibleSearch
 import time
 import unittest
 import sys
@@ -6,7 +6,7 @@ from gc import get_referents
 
 
 def getsize(obj):
-    """sum size of object & members."""
+    """sum size of an object & members."""
     seen_ids = set()
     size = 0
     objects = [obj]
@@ -39,9 +39,9 @@ class TestPerf(unittest.TestCase):
 
     def test_profile(self):
         self.bible_search.load('KJV')
-        new_kjv_size = getsize(self.bible_search) / (1024 ** 2)
+        new_kjv_size = (getsize(self.bible_search) + self.bible_search.internal_index_size()) / (1024 ** 2)
         self.bible_search.load_all()
-        new_all_size = getsize(self.bible_search) / (1024 ** 2)
+        new_all_size = (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
         print(f"KJV Only: {new_kjv_size:.4f} MiB")
         print(f"All: {new_all_size:.4f} MiB")
         print(f"KJV reduction: {1106.2344970703125 - new_kjv_size:.4f} MiB")

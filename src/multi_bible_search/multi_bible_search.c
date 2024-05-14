@@ -724,13 +724,12 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         // Translate the reference and add it to the Python list
         str_ref = rtranslate(token_result_list[i]);
         if (str_ref == Py_None) {
-            //result_count++;
-            Py_DecRef(str_ref);
+            Py_XDECREF(str_ref);
         }
         else {
             PyList_Append(result_list, str_ref);
 
-            // We're done with it, and adding it increments the reference counter, so decrement that.
+            // We're done with it, so decrement the reference counter.
             Py_DecRef(str_ref);
         }
     }
@@ -748,9 +747,6 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
 // Load an index
 PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
-    if (!self->ht) {
-        //allocate_tables(self);
-    }
     PyObject* input_dict;
     char* version;
     if (!PyArg_ParseTuple(args, "O|s", &input_dict, &version)) {
@@ -892,7 +888,7 @@ PyObject *SearchObject_unload(SearchObject *self, PyObject *args) {
     self->ht[table_index] = (struct hashtable*) malloc(sizeof(struct hashtable));
     if (self->ht[table_index] == NULL) {
         printf("Error allocating internal table\n");
-        return;
+        Py_RETURN_NONE;
     }
     self->ht[table_index]->elements = NULL;
     self->ht[table_index]->size = 0;

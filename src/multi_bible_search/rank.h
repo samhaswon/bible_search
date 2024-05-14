@@ -7,14 +7,14 @@
 #include <stdint.h>
 
 // function to swap elements
-void swap(long *a, long *b) {
+static inline void swap(long *a, long *b) {
   long t = *a;
   *a = *b;
   *b = t;
 }
 
 // function to find the partition position
-int partition(long *array, int low, int high) {
+static inline int partition(long *array, int low, int high) {
   
 	// select the rightmost element as pivot
 	long pivot = array[high];
@@ -103,9 +103,119 @@ static inline int rank(long *array, size_t size, int target) {
 	return (likely_count + others_count);
 }
 
+// Convert a string to lowercase
 static inline void make_lower(char *string) {
 	for ( ; *string; ++string) {
-		*string = tolower(*string);
+		// Verbose, but this is fast
+		switch (*string)
+		{
+		case 'A':
+			*string = 'a';
+			break;
+
+		case 'B':
+			*string = 'b';
+			break;
+
+		case 'C':
+			*string = 'c';
+			break;
+
+		case 'D':
+			*string = 'd';
+			break;
+		
+		case 'E':
+			*string = 'e';
+			break;
+
+		case 'F':
+			*string = 'f';
+			break;
+
+		case 'G':
+			*string = 'g';
+			break;
+
+		case 'H':
+			*string = 'h';
+			break;
+
+		case 'I':
+			*string = 'i';
+			break;
+
+		case 'J':
+			*string = 'j';
+			break;
+
+		case 'K':
+			*string = 'k';
+			break;
+
+		case 'L':
+			*string = 'l';
+			break;
+
+		case 'M':
+			*string = 'm';
+			break;
+
+		case 'N':
+			*string = 'n';
+			break;
+
+		case 'O':
+			*string = 'o';
+			break;
+
+		case 'P':
+			*string = 'p';
+			break;
+
+		case 'Q':
+			*string = 'q';
+			break;
+
+		case 'R':
+			*string = 'r';
+			break;
+
+		case 'S':
+			*string = 's';
+			break;
+
+		case 'T':
+			*string = 't';
+			break;
+
+		case 'U':
+			*string = 'u';
+			break;
+
+		case 'V':
+			*string = 'v';
+			break;
+
+		case 'W':
+			*string = 'w';
+			break;
+
+		case 'X':
+			*string = 'x';
+			break;
+
+		case 'Y':
+			*string = 'y';
+			break;
+
+		case 'Z':
+			*string = 'z';
+			break;
+		
+		default:
+			break;
+		}
 	}
 }
 

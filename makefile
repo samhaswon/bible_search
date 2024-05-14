@@ -1,5 +1,8 @@
 build:
 	py -m build
 
-install:
+install: dist/multi_bible_search-1.0.2.tar.gz
 	pip install --force-reinstall ./dist/multi_bible_search-1.0.2.tar.gz
+	copy venv\\Lib\\site-packages\\multi_bible_search\\*.pyd src\\multi_bible_search\\
+
+full: build install

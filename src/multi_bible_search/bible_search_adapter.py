@@ -6,10 +6,12 @@ from .multi_bible_search import BibleSearch as cBibleSearch
 
 
 class BibleSearch(object):
-    def __init__(self, preload: Union[List[str], None] = None, debug=False):
+    """
+    Search versions of the Bible
+    """
+    def __init__(self, preload: Union[List[str], None] = None):
         """
         :param preload: List of versions to preload.
-        :param debug: Flag for indicating when the specified and common indices are loaded.
         """
         # Some attributes
         self.__c_search = cBibleSearch()
@@ -22,44 +24,13 @@ class BibleSearch(object):
         # Preload common indices
         self._load_version("All", preload=True)
         self._load_version("KJV-like", preload=True)
+        self._load_version("NIV", preload=True)
 
         self.__loaded: set = set()
 
         if preload:
             for version in preload:
                 self.load(version)
-
-        if debug:
-            print("Search index loaded")
-
-    @staticmethod
-    def _tokenize(input_string: str) -> List[str]:
-        """
-        Tokenizes a string based on spaces.
-        :param input_string: string to tokenize.
-        :return: list of lowercase tokens (words) in the string.
-        """
-        cleaned = ''.join(x for x in input_string.lower() if x.isalpha() or x.isspace())
-        return cleaned.split()
-
-    @staticmethod
-    def _ranked(refs: List[tuple], num_tokens: int) -> List[tuple]:
-        """
-        Ranks search results by the count of tokens.
-        :param refs: List of tuple references to rank.
-        :param num_tokens: The number of tokens in the query. Hoists results with this number of tokens to the top of
-        results.
-        :return: Ranked search results.
-        """
-        most_likely = []
-        others = []
-        for ref in refs:
-            if ref[1] == num_tokens:
-                most_likely.append(ref)
-            else:
-                others.append(ref)
-        most_likely.extend(others)
-        return most_likely
 
     def _load_version(self, version: str, preload: bool = False) -> None:
         """
@@ -68,8 +39,6 @@ class BibleSearch(object):
         :param version: The version to preload.
         :return: None
         """
-        if version in self.__both_niv:
-            self._load_version("NIV", preload=True)
         base_path = os.path.dirname(os.path.abspath(__file__))
         with bz2.open(f"{base_path}/data/{version}.json.pbz2", "rt", encoding='utf-8') as data_file:
             self.__c_search.load(json.load(data_file), version)
@@ -102,7 +71,11 @@ class BibleSearch(object):
         :return: None
         :raises Exception: If the version is invalid, raises an exception.
         """
-        raise NotImplemented("This is not implemented in C yet")
+        if version in self.__versions and version in self.__loaded:
+            self.__c_search.unload(version)
+            self.__loaded.remove(version)
+        else:
+            raise Exception(f"Invalid version {version}")
 
     def search(self, query: str, version="KJV"):
         """
@@ -114,7 +87,10 @@ class BibleSearch(object):
         # Load the version if it is not already loaded
         if version not in self.__loaded:
             self.load(version)
-        return self.__c_search.search(query.lower(), version)
+        return self.__c_search.search(query, version)
+
+    def internal_index_size(self):
+        return self.__c_search.index_size()
 
     @property
     def loaded(self):

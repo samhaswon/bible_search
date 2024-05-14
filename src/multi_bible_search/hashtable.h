@@ -24,10 +24,10 @@ struct hashtable
 };
 
 
-int hash(const char* key, int size) {
-    unsigned int length = strlen(key);
+static inline int hash(const char* key, int size) {
+    size_t length = strlen(key);
     unsigned long result = key[0] << 7;
-    for (int i = 0; i < length; i++) {
+    for (size_t i = 0; i < length; i++) {
         result = (10000003 * result) ^ key[i];
     }
     result += result >> 1;
@@ -37,7 +37,7 @@ int hash(const char* key, int size) {
 }
 
 
-void allocate_table(struct hashtable* ht) {
+static inline void allocate_table(struct hashtable* ht) {
     // printf("Allocation call\n");
     if (ht->size == 0) {
         // printf("Allocating initial table...\n");
@@ -79,7 +79,7 @@ void allocate_table(struct hashtable* ht) {
 
 void delete_table(struct hashtable* ht) {
     // If the table is empty, there's nothing to deallocate
-    if (!ht->size) { return; }
+    if (ht == NULL || !ht->size) { return; }
 
     // Otherwise, delete everything
     for (int i = 0; i < ht->size; i++) {
@@ -125,7 +125,7 @@ void add_element(struct hashtable* ht, struct element* e) {
     ht->num_elements++;
 }
 
-struct element* get_element(struct hashtable* ht, const char * key) {
+static inline struct element* get_element(struct hashtable* ht, const char * key) {
     int element_hash = hash(key, ht->size);
     int j = element_hash;
     // If the element does not exist, return NULL

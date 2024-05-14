@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 // function to swap elements
 void swap(long *a, long *b) {
@@ -52,63 +53,60 @@ void quickSort(long *array, int low, int high) {
 	}
 }
 
-int rank(long *array, int size, int target) {
+static inline int rank(long *array, size_t size, int target) {
+	if (size == 0 || target == 0) {
+		return size;
+	}
+	//printf("Rank 'em, size %zd\n", size);
 	long *most_likely = (long *) malloc(size * sizeof(long));
+	if (most_likely == NULL) {
+		// Attempt to fail gracefully
+		printf("Memory allocation error a!\n");
+		return size;
+	}
 	long *others = (long *) malloc(size * sizeof(long));
+	if (others == NULL) {
+		// Attempt to fail gracefully
+		printf("Memory allocation error b!\n");
+		return size;
+	}
+	//printf("Malloc'd\n");
 	int likely_count = 0, others_count = 0;
 
-	if (target == 1) {
-		for (int i = 0; i < size; i++) {
-			if (i + 1 != size && array[i] != array[i + 1]) {
-				most_likely[likely_count] = array[i];
-				likely_count++;
-			}
-			else if (i + 1 == size)
-			{
-				most_likely[likely_count] = array[i];
-				likely_count++;
-			}
+	if (array == NULL) {
+		// Attempt to fail gracefully
+		printf("Memory allocation error!\n");
+		return size;
+	}
 
+	for (uint_fast32_t i = 0; i < size; i++) {
+		uint_fast32_t count = 1;
+		while (i + 1 < size && array[i] == array[i + 1]) {
+			count++;
+			i++;
+		}
+		if (count == target) {
+			most_likely[likely_count++] = array[i];
+		}
+		else {
+			others[others_count++] = array[i];
 		}
 	}
-	else {
-		for (int i = 0; i < size; i++) {
-			for (int j = i + 1; j < size; j++) {
-				if (array[i] != array[j] && j - i == target) {
-					most_likely[likely_count] = array[i];
-					likely_count++;
-					i = j - 1;
-					break;
-				}
-				else if (array[i] != array[j]) {
-					others[others_count] = array[i];
-					others_count++;
-					i = j - 1;
-					break;
-				}
-				else if (j + 1 == size && j - i + 1 == target) {
-					most_likely[likely_count] = array[i];
-					likely_count++;
-				}
-				else if (j + 1 == size && target == 1) {
-					most_likely[likely_count] = array[i];
-					likely_count++;
-				}
-				else if (j + 1 == size) {
-					others[others_count] = array[i];
-					others_count++;
-				}
-			}
-		}
-	}
-	// printf("Likely: %d, others %d\n", likely_count, others_count);
+	//printf("Likely: %d, others %d\n", likely_count, others_count);
 
 	memcpy(array, most_likely, likely_count * sizeof(long));
 	memcpy(&array[likely_count], others, others_count * sizeof(long));
 
+
 	free(most_likely);
 	free(others);
-	return likely_count + others_count;
+	return (likely_count + others_count);
+}
+
+static inline void make_lower(char *string) {
+	for ( ; *string; ++string) {
+		*string = tolower(*string);
+	}
 }
 
 #endif

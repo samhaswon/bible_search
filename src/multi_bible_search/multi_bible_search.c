@@ -565,22 +565,19 @@ pair get_table_index(const char* version) {
 
 // Function to initialize the SearchObject
 static int SearchObject_init(SearchObject *self, PyObject *args) {
-    return 0;
-    PyObject *init_dict = NULL;
-    // Parse arguments
-    if (!PyArg_ParseTuple(args, "O", &init_dict)) {
-        return -1;
-    }
     allocate_tables(self);
-    printf("Object instantiated\n");
     return 0;
 }
 
 static void SearchObject_destructor(SearchObject* self) {
-    for (int i = 0; i < NUM_TABLES; i++) {
-        delete_table(self->ht[i]);
+    if (self->ht != NULL) {
+        for (int i = 0; i < NUM_TABLES; i++) {
+            if (self->ht[i] != NULL) {
+                delete_table(self->ht[i]);
+            }
+        }
+        free(self->ht);
     }
-    free(self->ht);
 }
 
 // Get the versions list
@@ -607,6 +604,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         // Return None just in case
         Py_RETURN_NONE;
     }
+    make_lower(query1);
     // Hash table indicies to get from
     pair table_index = get_table_index(version);
 
@@ -751,7 +749,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 // Load an index
 PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     if (!self->ht) {
-        allocate_tables(self);
+        //allocate_tables(self);
     }
     PyObject* input_dict;
     char* version;
@@ -818,7 +816,7 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
         }
         for (Py_ssize_t i = 0; i < list_len; i++) {
             // printf("Getting item %d\n", i);
-            long_ptr = PyList_GetItem(value, i);
+            long_ptr = PyList_GET_ITEM(value, i);
             long_list[i] = PyLong_AsLong(long_ptr);
         }
         // printf("Got all items, adding the element\n");
@@ -850,10 +848,86 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+PyObject *SearchObject_unload(SearchObject *self, PyObject *args) {
+    // If the hashtable DNE, then just return
+    if (!self->ht) {
+        Py_RETURN_NONE;
+    }
+    char* version;
+    if (!PyArg_ParseTuple(args, "s", &version)) {
+        // Raise a runtime error if the argument is not a string
+        PyObject *exception_type = PyExc_RuntimeError;
+        PyObject *exception_value = PyUnicode_FromString("Error getting unload version arguments!\n");
+        PyErr_SetObject(exception_type, exception_value);
+
+        // Return None just in case
+        Py_RETURN_NONE;
+    }
+    // The index in the table to remove
+    short table_index = get_table_index(version).a;
+    // Make sire that the input string was a valid version
+    if (!table_index) {
+        // Raise an exception for the invalid version
+        printf("Error! %d\n", table_index);
+        char error_buff[100];
+        strncpy(error_buff, "Invalid version: ", sizeof(error_buff) - 1);
+        strncat(error_buff, version, sizeof(error_buff) - 1);
+        PyObject *exception_type = PyExc_RuntimeError;
+        PyObject *exception_value = PyUnicode_FromString(error_buff);
+        PyObject *exception_traceback = NULL;
+        PyErr_SetObject(exception_type, exception_value);
+
+        // Return None just in case
+        Py_RETURN_NONE;
+    }
+    // Just return none if there is nothing to free
+    if (self->ht[table_index] == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    // Delete the table
+    delete_table(self->ht[table_index]);
+
+    // But make another one for loading later if needed
+    self->ht[table_index] = (struct hashtable*) malloc(sizeof(struct hashtable));
+    if (self->ht[table_index] == NULL) {
+        printf("Error allocating internal table\n");
+        return;
+    }
+    self->ht[table_index]->elements = NULL;
+    self->ht[table_index]->size = 0;
+    self->ht[table_index]->num_elements = 0;
+
+    Py_RETURN_NONE;
+}
+
+PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
+    // If the hashtable DNE, then just return
+    if (!self->ht) {
+        Py_RETURN_NONE;
+    }
+    unsigned long num_bytes = 0;
+    for (int i = 0; i < NUM_TABLES; i++) {
+        if (self->ht[i] == NULL) {
+            continue;
+        }
+        for (size_t j = 0; j < self->ht[i]->size; j++) {
+            if (self->ht[i]->elements[j] != NULL) {
+                num_bytes += sizeof(struct element);
+                num_bytes += self->ht[i]->elements[j]->length * sizeof(long);
+            }
+        }
+    }
+    num_bytes += sizeof(struct hashtable) * NUM_TABLES;
+    return PyLong_FromUnsignedLong(num_bytes);
+}
+
 // Method definitions
 static PyMethodDef SearchObject_methods[] = {
     {"search", (PyCFunction)SearchObject_search, METH_VARARGS, "Search method"},
     {"load", (PyCFunction)SearchObject_load, METH_VARARGS, "Load dict method"},
+    {"unload", (PyCFunction)SearchObject_unload, METH_VARARGS, "Unload version method"},
+    {"index_size", (PyCFunction)SearchObject_index_size, METH_VARARGS, "Gets the size of the index in bytes"},
     {NULL} // Sentinel
 };
 

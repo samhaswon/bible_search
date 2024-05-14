@@ -8,3 +8,5 @@ dist/
 /src/multi_bible_search.egg-info/
 *.pyc
 /src/multi_bible_search/C/
+/src/multi_bible_search/*.pyd
+/src/multi_bible_search/*.so

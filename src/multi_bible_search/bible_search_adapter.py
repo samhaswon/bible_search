@@ -15,7 +15,6 @@ class BibleSearch(object):
         """
         # Some attributes
         self.__c_search = cBibleSearch()
-        self.__both_niv: set = {"NIV 1984", "NIV 2011"}
         self.__kjv_like: set = {"AKJV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
         self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
                                 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
@@ -50,9 +49,11 @@ class BibleSearch(object):
         Preloads a given version's search index.
         :param version: The version to preload.
         :return: None
+        :raises KeyError: For invalid version strings.
         """
         # Quick check that the version is valid
-        assert version in self.__versions
+        if version not in self.__versions:
+            raise KeyError("Invalid version string")
         # Load the version
         self._load_version(version)
 
@@ -69,7 +70,7 @@ class BibleSearch(object):
         Unload a version's index from memory.
         :param version: The version to remove.
         :return: None
-        :raises Exception: If the version is invalid, raises an exception.
+        :raises Exception: If the version is invalid or not loaded, raises an exception.
         """
         if version in self.__versions and version in self.__loaded:
             self.__c_search.unload(version)
@@ -77,23 +78,27 @@ class BibleSearch(object):
         else:
             raise Exception(f"Invalid version {version}")
 
-    def search(self, query: str, version="KJV"):
+    def search(self, query: str, version="KJV") -> List[str]:
         """
         Search for a passage in the Bible.
-        :param query: Search query
-        :param version: version to src
-        :return: List of match references
+        :param query: The search query string.
+        :param version: The version to search.
+        :return: List of match references (e.g., `["John 11:35", "Matthew 1:7", ...]`).
         """
         # Load the version if it is not already loaded
         if version not in self.__loaded:
             self.load(version)
         return self.__c_search.search(query, version)
 
-    def internal_index_size(self):
+    def internal_index_size(self) -> int:
+        """
+        Gets the size of the index stored in C in bytes.
+        :return: Index size in bytes.
+        """
         return self.__c_search.index_size()
 
     @property
-    def loaded(self):
+    def loaded(self) -> List[str]:
         """
         A list of the versions currently loaded in the search object. This does not include common indices.
         """

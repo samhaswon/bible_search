@@ -6,6 +6,44 @@
 #include <string.h>
 #include <stdint.h>
 
+typedef struct result_pair {
+	long element;
+	uint_fast16_t count; 
+} result_pair;
+
+// Counting sort function for result_pair array
+void countingSort(result_pair arr[], int n, long* destination) {
+    // Find the maximum count value in the array
+    uint_fast16_t max = 0;
+    for (int i = 0; i < n; i++) {
+        if (arr[i].count > max) {
+            max = arr[i].count;
+        }
+    }
+
+    // Create a count array to store count of each unique count value
+    int *count = (int *)calloc(max + 1, sizeof(int));
+
+    // Store the count of each count value
+    for (int i = 0; i < n; i++) {
+        count[arr[i].count]++;
+    }
+
+    // Change count[i] so that count[i] contains the actual position of this count in the output array
+    for (int i = max - 1; i >= 0; i--) {
+        count[i] += count[i + 1];
+    }
+
+    // Build the output array
+    for (int i = n - 1; i >= 0; i--) {
+        destination[count[arr[i].count] - 1] = arr[i].element;
+        count[arr[i].count]--;
+    }
+
+    // Clean up
+    free(count);
+}
+
 /*
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
@@ -61,7 +99,8 @@ static inline int rank(long *array, size_t size, int target) {
 		return size;
 	}
 	// Array of the other results
-	long *others = (long *) malloc(size * sizeof(long));
+	result_pair *others = (result_pair *) malloc(size * sizeof(result_pair));
+	result_pair tmp_other;
 	if (others == NULL) {
 		// Attempt to fail gracefully
 		printf("Memory allocation error b!\n");
@@ -85,13 +124,17 @@ static inline int rank(long *array, size_t size, int target) {
 		}
 		// Otherwise, put it in others
 		else {
-			others[others_count++] = array[i];
+			tmp_other.element = array[i];
+			tmp_other.count = count;
+			others[others_count++] = tmp_other;
 		}
 	}
 
 	// Copy the temporary arrays into the old one
 	memcpy(array, most_likely, likely_count * sizeof(long));
-	memcpy(&array[likely_count], others, others_count * sizeof(long));
+
+	// Sort the other results and add them to the correct place in the array
+	countingSort(others, others_count, &array[likely_count]);
 
 	// Free dynamically allocated memory
 	free(most_likely);

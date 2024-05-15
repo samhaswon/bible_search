@@ -14,7 +14,10 @@ def remove_punctuation(input_string: str) -> str:
     :param input_string: String to process
     :return: cleaned string
     """
-    return ''.join(x for x in re.sub(r"[\u0080-\uffef]s?|'s?", "", input_string)
+    return ''.join(x for x in re.sub(r"\s\s+", " ",
+                                     re.sub(
+                                         r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-?!]+|\u2014|\\ul\d",
+                                         " ", input_string.replace("\u014D", "o")))
                    if (x.isalpha() or x.isspace()))
 
 
@@ -24,7 +27,7 @@ def tokenize(input_string: str) -> List[str]:
     :param input_string: The string to tokenize.
     :return: A list of lowercase tokens (words) in the string.
     """
-    return remove_punctuation(input_string.lower()).split()
+    return remove_punctuation(input_string.replace("I-chabod", "Ichabod").lower()).split()
 
 
 def index_bible(bible, name: str, result) -> None:
@@ -56,6 +59,30 @@ def index_bible(bible, name: str, result) -> None:
                     tokens = list(set(tokenize(passage[passage.find(" "):])))
                     reference = translate(book, chapter, verse)
                     for token in tokens:
+                        if len(token) == 1 and token != "a":
+                            continue
+                        # XML source issue
+                        elif token in {"lxx", "syr", "vg", "heb", "etc", "isha", "ish", "aleph", "kol"}:
+                            continue
+                        # ????
+                        elif token == 'ij':
+                            token = "i"
+                        # Typo in the source?
+                        elif token == "ad":
+                            token = "and"
+                        # Make this the same
+                        elif token == 'aramnaharaim':
+                            if "aram" not in tmp_index:
+                                tmp_index["aram"] = []
+                            if "naharaim" not in tmp_index:
+                                tmp_index["naharaim"] = []
+                            tmp_index["aram"].append(reference)
+                            tmp_index["naharaim"].append(reference)
+                            continue
+                        try:
+                            a = token.encode("ascii")
+                        except:
+                            continue
                         if token not in tmp_index:
                             tmp_index[token] = []
                         tmp_index[token].append(reference)
@@ -124,6 +151,10 @@ def make_index(bibles: dict) -> dict:
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
     index = separate_duplicates(index, kjv_like, "KJV-like")
 
+    print("Built tertiary index. removing duplicates from the two NIV versions...")
+    both_niv = ["NIV 1984", "NIV 2011"]
+    index = separate_duplicates(index, both_niv, "NIV")
+
     return index
 
 
@@ -175,9 +206,15 @@ if __name__ == '__main__':
 
     reference_index = make_index(bibles)
 
+    key_list = []
     # Save each version's index as a separate file to be able to load them independently.
     for key in reference_index.keys():
         save(reference_index[key], key)
+        key_list.extend(reference_index[key].keys())
+
+    key_list = list(set(key_list))
+    with open("../keys.txt", "w", encoding="utf-8") as key_file:
+        key_file.write(''.join(f"{k}\n" for k in key_list))
     # How long did this take? Because this takes a while to run.
     end = time.perf_counter()
     print(f"Index time: {end - start:.4f}")

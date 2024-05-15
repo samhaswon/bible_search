@@ -1,4 +1,1 @@
-from .bible_search import BibleSearch
-
-
-BibleSearch
+from .bible_search_adapter import BibleSearch

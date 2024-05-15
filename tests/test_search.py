@@ -23,7 +23,7 @@ class TestSearch(unittest.TestCase):
         query6 = self.bible_search.search("Therefore came I forth to meet thee")
         self.assertIn("Proverbs 7:15", query6)
         # Sorting is backwards for partial matches in the C version
-        self.assertIn("Proverbs 7:15", query6[6900:7000])
+        self.assertIn("Proverbs 7:15", query6[:5])
         query7 = self.bible_search.search("And Israel dwelt in the land of Egypt, in the country of Goshen; and they "
                                           "had possessions therein, and grew, and multiplied exceedingly.")
         self.assertIn("Genesis 47:27", query7[:3])
@@ -60,6 +60,8 @@ class TestSearch(unittest.TestCase):
         # Should raise an Exception if we try to unload it again.
         with self.assertRaises(Exception):
             self.bible_search.unload_version("KJV")
+        self.bible_search.load("KJV")
+        # This should be skipped and not cause an error
         self.bible_search.load("KJV")
 
 

@@ -569,11 +569,13 @@ static int SearchObject_init(SearchObject *self, PyObject *args) {
     return 0;
 }
 
+// Free the object's dynamically allocated memory
 static void SearchObject_destructor(SearchObject* self) {
     if (self->ht != NULL) {
         for (int i = 0; i < NUM_TABLES; i++) {
             if (self->ht[i] != NULL) {
                 delete_table(self->ht[i]);
+                free(self->ht[i]);
             }
         }
         free(self->ht);
@@ -629,13 +631,14 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     struct element *result_all = NULL,         // Results of all versions
                    *result_version = NULL,     // Results of the particular version
                    *result_combined = NULL;    // Results from any combined index (if applicable)
-    //printf("Table index: a=%d, b=%d; num tokens: %d\n", table_index.a, table_index.b, num_tokens);
 
+    // If the version is invalid, return. Just in case something is wrong in the Python adapter
     if (!table_index.a) {
         free(tokens);
         return result_list;
     }
 
+    // Make sure we have tokens, then search
     if (tokens) {
         for (int i = 0; i < num_tokens; i++) {
             // Get results for all, adding to the number of total results
@@ -674,30 +677,21 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
             // Add results from all
             if (result_all != NULL) {
-                //memcpy(&token_result_list[result_count], result_all->value, result_all->length * sizeof(long));
-                /*for (size_t i = 0; i < result_all->length; i++) {
-                    token_result_list[result_count + i] = result_all->value[i];
-                }*/
+                // Merge results from all
                 merge(token_result_list, result_count, result_all->value, result_all->length);
                 result_count += result_all->length;
             }
 
             // Get results for version:
             if (result_version != NULL) {
-                //memcpy(&token_result_list[result_count], result_version->value, result_version->length * sizeof(long));
-                /*for (size_t i = 0; i < result_version->length; i++) {
-                    token_result_list[result_count + i] = result_version->value[i];
-                }*/
+                // Merge results from this version
                 merge(token_result_list, result_count, result_version->value, result_version->length);
                 result_count += result_version->length;
             }
 
             // If applicable, get results from extra index:
             if (result_combined != NULL) {
-                //memcpy(&token_result_list[result_count], result_combined->value, result_combined->length * sizeof(long));
-                /*for (size_t i = 0; i < result_combined->length; i++) {
-                    token_result_list[result_count + i] = result_combined->value[i];
-                }*/
+                // Merge any results from the extra index
                 merge(token_result_list, result_count, result_combined->value, result_combined->length);
                 result_count += result_combined->length;
             }
@@ -705,6 +699,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         // Free the dynamically allocated tokens
         for (int i = 0; i < len_tokens; i++)
         {
+            // Since tokens is over allocated, we can just stop at the first NULL
             if (tokens[i] == NULL) {
                 break;
             }
@@ -717,40 +712,46 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         // Raise exception?
         printf("Failed to tokenize query\n");
     }
-    //printf("Ranking\n");
-    //quickSort(token_result_list, 0, token_result_list_len - 1);
-    //printf("Sorted\n");
+
+    // Rank the results, storing the length of the deduplicated portion of the array
     result_count = rank(token_result_list, token_result_list_len, num_tokens);
-    //printf("Num tokens: %d; result count: %zd, result list len: %zd\n", num_tokens, result_count, token_result_list_len);
 
     for (size_t i = 0; i < result_count && i < token_result_list_len; i++) {
         // Translate the reference and add it to the Python list
         str_ref = rtranslate(token_result_list[i]);
+        // Make sure the result isn't None. Basically another double check of the Python side of things.
         if (str_ref == Py_None) {
+            // If it was None, free it
             Py_XDECREF(str_ref);
         }
         else {
+            // Add the resulting Python string to the list
             PyList_Append(result_list, str_ref);
 
             // We're done with it, so decrement the reference counter.
             Py_DecRef(str_ref);
         }
     }
-    //printf("\nBuilt result list\n");
 
-    // Free the dynamically allocated list
+    // Free the dynamically allocated list 
     if (token_result_list != NULL) {
-        //printf("Try free! %p\n", result_list);
         free(token_result_list);
-        //printf("We're free!\n");
     }
 
+    // Give Python it's form of the results
     return result_list;
 }
 
-// Load an index
+/* 
+ * Load an index of either a version or multiple versions.
+ * Ideally, this would take in a file pointer or file name and just do the parsing work on the C side of things.
+ * For now, this works even if slow.
+ */ 
 PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
+    // The dictionary from Python
     PyObject* input_dict;
+
+    // The version string being loaded
     char* version;
     if (!PyArg_ParseTuple(args, "O|s", &input_dict, &version)) {
         PyObject *exception_type = PyExc_RuntimeError;
@@ -761,7 +762,9 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
         // Return None just in case
         Py_RETURN_NONE;
     }
+    // The index of the table to load into
     short table_index;
+    // Check if the version is a combined index
     if (!strcmp(version, "All")) {
         table_index = 0;
     }
@@ -771,8 +774,10 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     else if (!strcmp(version, "NIV")) {
         table_index = 2;
     }
+    // If not, use `get_table_index` to find the right one for this version
     else {
         table_index = get_table_index(version).a;
+        // Make sure thtat the version is valid
         if (!table_index) {
             // Raise an exception for the invalid version
             printf("Error! %d\n", table_index);
@@ -789,15 +794,18 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
         }
     }
 
-    PyObject *key, *value, *long_ptr;
+    PyObject *key,      // Dictionary key for iteration
+             *value,    // Pointer to the (list) value in question
+             *long_ptr; // Pointer to a number stored in the current list
     Py_ssize_t pos = 0;
     // printf("Loading dictionary\n");
 
     // Iterate through the dictionary
     while (PyDict_Next(input_dict, &pos, &key, &value)) {
+        // Length of the current list 
         Py_ssize_t list_len = PyList_Size(value);
 
-        // Make a new C list of longs from the Python one
+        // Make a new C list of longs from the length of the Python one
         long *long_list = (long *) malloc(sizeof(long) * list_len);
         if (long_list == NULL) {
             // Raise an exception for the invalid version
@@ -813,17 +821,16 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
             Py_IncRef(none);
             return none;
         }
+        // Copy the Python list into the C one
         for (Py_ssize_t i = 0; i < list_len; i++) {
-            // printf("Getting item %d\n", i);
             long_ptr = PyList_GET_ITEM(value, i);
             long_list[i] = PyLong_AsLong(long_ptr);
         }
-        // printf("Got all items, adding the element\n");
-        // New element for the hashtable
+        // Create a new element for the hashtable
         struct element *e = (struct element*) malloc(sizeof(struct element));
         if (e == NULL) {
             free(long_list);
-            // Raise an exception for the invalid version
+            // Raise an exception for the memory allocation failure
             printf("Error! %d\n", table_index);
             char error_buff[100];
             strncpy(error_buff, "Memory allocation e failed when loading index!\n", sizeof(error_buff) - 1);
@@ -832,18 +839,22 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
             PyErr_SetObject(exception_type, exception_value);
 
             // Return None just in case
-            PyObject* none = Py_None;
-            Py_IncRef(none);
-            return none;
+            Py_RETURN_NONE;
         }
-        const char *c_key;
+        
+        const char *c_key;  // Pointer to the key from Python
+
+        // Get the key from the Python dictionary and use it for the new element
         c_key = PyUnicode_AsUTF8(key);
+
+        // Build the element
         strncpy(e->key, c_key, sizeof(e->key) - 1);
         e->value = long_list;
         e->length = list_len;
+
+        // And add it
         add_element(self->ht[table_index], e);
     }
-    // printf("Loaded\n");
     Py_RETURN_NONE;
 }
 
@@ -852,7 +863,7 @@ PyObject *SearchObject_unload(SearchObject *self, PyObject *args) {
     if (!self->ht) {
         Py_RETURN_NONE;
     }
-    char* version;
+    char* version;  // The version to unload
     if (!PyArg_ParseTuple(args, "s", &version)) {
         // Raise a runtime error if the argument is not a string
         PyObject *exception_type = PyExc_RuntimeError;
@@ -884,15 +895,10 @@ PyObject *SearchObject_unload(SearchObject *self, PyObject *args) {
         Py_RETURN_NONE;
     }
 
-    // Delete the table
+    // Free the table's dynamically allocated memory
     delete_table(self->ht[table_index]);
 
-    // But make another one for loading later if needed
-    self->ht[table_index] = (struct hashtable*) malloc(sizeof(struct hashtable));
-    if (self->ht[table_index] == NULL) {
-        printf("Error allocating internal table\n");
-        Py_RETURN_NONE;
-    }
+    // Zero out the relevant attributes for potential later use
     self->ht[table_index]->elements = NULL;
     self->ht[table_index]->size = 0;
     self->ht[table_index]->num_elements = 0;
@@ -905,19 +911,28 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
     if (!self->ht) {
         Py_RETURN_NONE;
     }
+    // Accumulator for the number of bytes here
     unsigned long num_bytes = 0;
+    // Loop through each table
     for (int i = 0; i < NUM_TABLES; i++) {
+        // If the table is not allocated, just skip that
         if (self->ht[i] == NULL) {
             continue;
         }
+        // Loop through all of the elements
         for (size_t j = 0; j < self->ht[i]->size; j++) {
             if (self->ht[i]->elements[j] != NULL) {
+                // Add the size of the struct itself
                 num_bytes += sizeof(struct element);
+                // Also add the size of the array pointed to by the element
                 num_bytes += self->ht[i]->elements[j]->length * sizeof(long);
             }
         }
+        // Add the size of the hash table's array of elements
+        num_bytes += self->ht[i]->size * sizeof(struct element*);
     }
     num_bytes += sizeof(struct hashtable) * NUM_TABLES;
+    // The object's struct size is included in the definition of the object, which will be read by Python, so I won't add that here as well
     return PyLong_FromUnsignedLong(num_bytes);
 }
 

@@ -41,6 +41,8 @@ Remember that capitalization is important when using this method.
 
 You may also preload all versions by simply calling the `load_all()` method. 
 
+Finally, you can unload a version with the `unload_version()` method for a particular version. 
+
 ## Supported Versions
 
 Supported versions can be listed with

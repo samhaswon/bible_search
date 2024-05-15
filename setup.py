@@ -6,7 +6,6 @@ setup(
         Extension('multi_bible_search.multi_bible_search',
                   ['src/multi_bible_search/multi_bible_search.c'],
                   include_dirs=['src/multi_bible_search/'],
-                  extra_compile_args=['-O3'],
                   )
     ],
 )

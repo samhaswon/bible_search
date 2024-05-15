@@ -793,6 +793,9 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
             Py_RETURN_NONE;
         }
     }
+    if (self->ht[table_index]->size > 0) {
+        Py_RETURN_NONE;
+    }
 
     PyObject *key,      // Dictionary key for iteration
              *value,    // Pointer to the (list) value in question

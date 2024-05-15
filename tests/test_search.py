@@ -60,6 +60,7 @@ class TestSearch(unittest.TestCase):
         # Should raise an Exception if we try to unload it again.
         with self.assertRaises(Exception):
             self.bible_search.unload_version("KJV")
+        self.bible_search.load("KJV")
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <Python.h>
 #include <stdint.h>
 #include <string.h>
@@ -264,7 +265,7 @@ static PyObject* rtranslate(long reference) {
 // Tokenizes a given string based on spaces
 char **tokenize(const char *input_string, int *num_tokens, int *len_tokens) {
     // Allocate memory for token array
-    char **tokens = calloc(strlen(input_string), sizeof(char *));
+    char **tokens = calloc(strlen(input_string) + 1, sizeof(char *));
     if (tokens == NULL) {
         // Handle memory allocation failure
         return NULL;
@@ -596,8 +597,10 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     char *query1,     // The query string
          *version,    // The version to query
          **tokens;    // The tokenized form of the query
+    // Maximum number of results to return to Python
+    Py_ssize_t max_results = PY_SSIZE_T_MAX;
 
-    if (!PyArg_ParseTuple(args, "ss", &query1, &version)) {
+    if (!PyArg_ParseTuple(args, "ss|n", &query1, &version, &max_results)) {
         PyObject *exception_type = PyExc_RuntimeError;
         PyObject *exception_value = PyUnicode_FromString("Bad search arguments!\n");
         PyObject *exception_traceback = NULL;
@@ -716,7 +719,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     // Rank the results, storing the length of the deduplicated portion of the array
     result_count = rank(token_result_list, token_result_list_len, num_tokens);
 
-    for (size_t i = 0; i < result_count && i < token_result_list_len; i++) {
+    for (size_t i = 0; i < result_count && i < token_result_list_len && i < max_results; i++) {
         // Translate the reference and add it to the Python list
         str_ref = rtranslate(token_result_list[i]);
         // Make sure the result isn't None. Basically another double check of the Python side of things.

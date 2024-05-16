@@ -31,6 +31,8 @@ The results of each query are ranked by the number of keyword occurrences.
 
 If a query is made with no matches, say "notawordinthebible," the result of the query will be a list of length 0. 
 
+The maximum number of results may be specified with the optional `max_results` parameter.
+
 ### Preloading an Index
 
 Versions are automatically loaded as needed, but you may wish to preload a version for the sake of speed. 

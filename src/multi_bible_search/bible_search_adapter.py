@@ -1,6 +1,7 @@
 import bz2
 import json
 import os
+import sys
 from typing import List, Union
 from .multi_bible_search import BibleSearch as cBibleSearch
 
@@ -78,17 +79,18 @@ class BibleSearch(object):
         else:
             raise Exception(f"Invalid version {version}")
 
-    def search(self, query: str, version="KJV") -> List[str]:
+    def search(self, query: str, version: str = "KJV", max_results: int = sys.maxsize) -> List[str]:
         """
         Search for a passage in the Bible.
         :param query: The search query string.
         :param version: The version to search.
+        :param max_results: The maximum number of results to retrieve.
         :return: List of match references (e.g., `["John 11:35", "Matthew 1:7", ...]`).
         """
         # Load the version if it is not already loaded
         if version not in self.__loaded:
             self.load(version)
-        return self.__c_search.search(query, version)
+        return self.__c_search.search(query, version, max_results)
 
     def internal_index_size(self) -> int:
         """

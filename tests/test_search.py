@@ -36,6 +36,11 @@ class TestSearch(unittest.TestCase):
         # Test it with some unicode
         query11 = self.bible_search.search("something æ\u200B\u201Dב” else")
         self.assertGreater(len(query11), 0)
+        query12 = self.bible_search.search("wh")
+        self.assertEqual(len(query12), 0)
+        query13 = self.bible_search.search("w")
+        self.assertEqual(len(query13), 0)
+        query14 = self.bible_search.search("a")
 
     def test_versions(self):
         self.assertIn("KJV", self.bible_search.versions)

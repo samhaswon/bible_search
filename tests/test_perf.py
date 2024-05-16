@@ -37,6 +37,18 @@ class TestPerf(unittest.TestCase):
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
 
+    def test_perf_max_results(self):
+        count = 200_000
+        self.bible_search.load('KJV')
+        start = time.perf_counter()
+        for i in range(count):
+            # Do some searching
+            self.bible_search.search("Jesus wept", max_results=100)
+        end = time.perf_counter()
+        avg_time = (end - start) / count
+        print(f"Total: {end - start:.4f}s\n"
+              f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
+
     def test_profile(self):
         self.bible_search.load('KJV')
         new_kjv_size = (getsize(self.bible_search) + self.bible_search.internal_index_size()) / (1024 ** 2)

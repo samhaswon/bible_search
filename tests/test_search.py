@@ -41,6 +41,7 @@ class TestSearch(unittest.TestCase):
         query13 = self.bible_search.search("w")
         self.assertEqual(len(query13), 0)
         query14 = self.bible_search.search("a")
+        self.assertGreater(len(query14), 0)
 
     def test_versions(self):
         self.assertIn("KJV", self.bible_search.versions)
@@ -50,7 +51,6 @@ class TestSearch(unittest.TestCase):
     def test_load_all(self):
         """
         Test loading all versions.
-        PyCharm breaks this for some reason.
         """
         self.bible_search.load_all()
         self.assertEqual(self.bible_search.loaded.sort(), self.bible_search.versions.sort())

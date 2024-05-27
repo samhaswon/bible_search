@@ -5,6 +5,9 @@
 #include "hashtable.h"
 #include "rank.h"
 
+// Tell MSVC it's fine
+#pragma warning(disable : 4996)
+
 #define NUM_TABLES 31
 
 // This is an ever so slight, single use optimization over itoa
@@ -273,12 +276,11 @@ static inline PyObject* rtranslate(long reference) {
             strcpy(reference_buffer, "Revelation ");
             break;
         default:
-            // Return None
-            Py_RETURN_NONE;
+            return NULL;
     }
 
     // Quick bounds check
-    if (verse > 176 || chapter > 176) { Py_RETURN_NONE; }
+    if (verse > 176 || chapter > 176) { return NULL; }
 
     // Add the chapter number and colon
     ref_to_str_colon(chapter, reference_buffer);
@@ -286,13 +288,14 @@ static inline PyObject* rtranslate(long reference) {
     // Add the verse number
     ref_to_str(verse, reference_buffer);
 
-    return PyUnicode_FromStringAndSize(reference_buffer, strlen(reference_buffer));
+    return PyUnicode_FromString(reference_buffer);
 }
 
 // Tokenizes a given string based on spaces
-static inline char **tokenize(const char *input_string, int *num_tokens, int *len_tokens) {
+static inline char **tokenize(const char * input_string, int *num_tokens, int *len_tokens) {
     // Allocate memory for token array
-    char **tokens = calloc(strlen(input_string) + 1, sizeof(char *));
+    *len_tokens = strlen(input_string) + 1;
+    char **tokens = calloc(*len_tokens, sizeof(char *));
     if (tokens == NULL) {
         // Handle memory allocation failure
         return NULL;
@@ -300,7 +303,7 @@ static inline char **tokenize(const char *input_string, int *num_tokens, int *le
 
     const char *ptr = input_string;
     const char *start;
-    int count = 0;
+    int count = 0, token_len;
 
     // Tokenize the string based on spaces
     while (*ptr != '\0') {
@@ -318,8 +321,9 @@ static inline char **tokenize(const char *input_string, int *num_tokens, int *le
         }
 
         // Extract the token
-        if (ptr != start) {
-            tokens[count] = malloc(ptr - start + 1);
+        if ((token_len = ptr - start)) {
+            //token_len = ptr - start;
+            tokens[count] = malloc(token_len + 1);
             if (tokens[count] == NULL) {
                 // Handle memory allocation failure
                 for (int i = 0; i < count; i++) {
@@ -327,13 +331,12 @@ static inline char **tokenize(const char *input_string, int *num_tokens, int *le
                 }
                 free(tokens);
                 return NULL;
-            }
-            strncpy(tokens[count], start, ptr - start);
-            tokens[count][ptr - start] = '\0';
+            } 
+            strncpy(tokens[count], start, token_len);
+            tokens[count][token_len] = '\0';
             count++;
         }
     }
-    *len_tokens = sizeof(tokens);
     *num_tokens = count;
     return tokens;
 }
@@ -680,7 +683,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
             token_result_list_len += result_version != NULL ? result_version->length : 0;
 
             // If there is a combined index, search that too
-            if (table_index.b != 0) {
+            if (table_index.b) {
                 result_combined = get_element(self->ht[table_index.b], tokens[i]);
                 token_result_list_len += result_combined != NULL ? result_combined->length : 0;
             }
@@ -746,15 +749,16 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     // Rank the results, storing the length of the deduplicated portion of the array
     result_count = rank(token_result_list, token_result_list_len, num_tokens);
 
-    for (size_t i = 0; i < result_count && i < token_result_list_len && i < max_results; i++) {
+    // By this point: result_count <= token_result_list_len
+    if (max_results > result_count) {
+        max_results = result_count;
+    }
+
+    for (size_t i = 0; i < max_results; i++) {
         // Translate the reference and add it to the Python list
         str_ref = rtranslate(token_result_list[i]);
         // Make sure the result isn't None. Basically another double check of the Python side of things.
-        if (str_ref == Py_None) {
-            // If it was None, free it
-            Py_XDECREF(str_ref);
-        }
-        else {
+        if (str_ref != NULL) {
             // Add the resulting Python string to the list
             PyList_Append(result_list, str_ref);
 
@@ -831,7 +835,6 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
              *value,    // Pointer to the (list) value in question
              *long_ptr; // Pointer to a number stored in the current list
     Py_ssize_t pos = 0;
-    // printf("Loading dictionary\n");
 
     // Iterate through the dictionary
     while (PyDict_Next(input_dict, &pos, &key, &value)) {

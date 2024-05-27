@@ -28,7 +28,7 @@ struct hashtable
 };
 
 // Calculate the hash of a string based on the size of the hash table
-static inline int hash(const char* key, int size) {
+static inline int hash(const char* key, const int size) {
     size_t length = strlen(key);
     unsigned long result = key[0] << 7;
     for (size_t i = 0; i < length; i++) {
@@ -138,7 +138,7 @@ void add_element(struct hashtable* ht, struct element* e) {
 }
 
 // Get an element of the hash table
-static inline struct element* get_element(struct hashtable* ht, const char * key) {
+static inline struct element* get_element(const struct hashtable* ht, const char * key) {
     int j = hash(key, ht->size);
     // Search for the element. If the element does not exist, that is fine
     while (ht->elements[j] != NULL && strcmp(ht->elements[j]->key, key)) {

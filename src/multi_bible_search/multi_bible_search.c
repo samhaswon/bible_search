@@ -8,7 +8,7 @@
 #define NUM_TABLES 31
 
 // This is an ever so slight, single use optimization over itoa
-void ref_to_str(uint_fast16_t num, char* str) {
+static inline void ref_to_str(uint_fast16_t num, char* str) {
     // This covers the range of possible chapter and verse values of a reference. 
     static const char* numbers[] = { "\0", // NULL sentinel
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
@@ -28,14 +28,42 @@ void ref_to_str(uint_fast16_t num, char* str) {
         "141", "142", "143", "144", "145", "146", "147", "148", "149", "150",
         "151", "152", "153", "154", "155", "156", "157", "158", "159", "160",
         "161", "162", "163", "164", "165", "166", "167", "168", "169", "170",
-        "171", "172", "173", "174", "175", "176", 0 // NULL sentinel
+        "171", "172", "173", "174", "175", "176", "\0" // NULL sentinel
+    };
+    
+    strcat(str, numbers[num]);
+}
+static inline void ref_to_str_colon(uint_fast16_t num, char* str) {
+    // This covers the range of possible chapter and verse values of a reference. 
+    static const char* numbers[] = { "\0", // NULL sentinel
+        "1:", "2:", "3:", "4:", "5:", "6:", "7:", "8:", "9:", "10:", 
+        "11:", "12:", "13:", "14:", "15:", "16:", "17:", "18:", "19:", 
+        "20:", "21:", "22:", "23:", "24:", "25:", "26:", "27:", "28:", 
+        "29:", "30:", "31:", "32:", "33:", "34:", "35:", "36:", "37:", 
+        "38:", "39:", "40:", "41:", "42:", "43:", "44:", "45:", "46:", 
+        "47:", "48:", "49:", "50:", "51:", "52:", "53:", "54:", "55:", 
+        "56:", "57:", "58:", "59:", "60:", "61:", "62:", "63:", "64:", 
+        "65:", "66:", "67:", "68:", "69:", "70:", "71:", "72:", "73:", 
+        "74:", "75:", "76:", "77:", "78:", "79:", "80:", "81:", "82:", 
+        "83:", "84:", "85:", "86:", "87:", "88:", "89:", "90:", "91:", 
+        "92:", "93:", "94:", "95:", "96:", "97:", "98:", "99:", "100:", 
+        "101:", "102:", "103:", "104:", "105:", "106:", "107:", "108:", 
+        "109:", "110:", "111:", "112:", "113:", "114:", "115:", "116:", 
+        "117:", "118:", "119:", "120:", "121:", "122:", "123:", "124:", 
+        "125:", "126:", "127:", "128:", "129:", "130:", "131:", "132:", 
+        "133:", "134:", "135:", "136:", "137:", "138:", "139:", "140:", 
+        "141:", "142:", "143:", "144:", "145:", "146:", "147:", "148:", 
+        "149:", "150:", "151:", "152:", "153:", "154:", "155:", "156:", 
+        "157:", "158:", "159:", "160:", "161:", "162:", "163:", "164:", 
+        "165:", "166:", "167:", "168:", "169:", "170:", "171:", "172:", 
+        "173:", "174:", "175:", "176:", "\0" // NULL sentinel
     };
     
     strcat(str, numbers[num]);
 }
 
 // Translate numeric references to Python strings
-static PyObject* rtranslate(long reference) {
+static inline PyObject* rtranslate(long reference) {
     // Buffer for up to the longest reference would be 20,
     // but it is bumped up to 24 for the longest invalid reference
     char reference_buffer[24];
@@ -253,8 +281,7 @@ static PyObject* rtranslate(long reference) {
     if (verse > 176 || chapter > 176) { Py_RETURN_NONE; }
 
     // Add the chapter number and colon
-    ref_to_str(chapter, reference_buffer);
-    strcat(reference_buffer, ":");
+    ref_to_str_colon(chapter, reference_buffer);
 
     // Add the verse number
     ref_to_str(verse, reference_buffer);
@@ -263,7 +290,7 @@ static PyObject* rtranslate(long reference) {
 }
 
 // Tokenizes a given string based on spaces
-char **tokenize(const char *input_string, int *num_tokens, int *len_tokens) {
+static inline char **tokenize(const char *input_string, int *num_tokens, int *len_tokens) {
     // Allocate memory for token array
     char **tokens = calloc(strlen(input_string) + 1, sizeof(char *));
     if (tokens == NULL) {

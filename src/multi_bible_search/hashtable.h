@@ -32,7 +32,7 @@ static inline int hash(const char* key, int size) {
     size_t length = strlen(key);
     unsigned long result = key[0] << 7;
     for (size_t i = 0; i < length; i++) {
-        result = (10000003 * result) ^ key[i];
+        result = (1003 * result) ^ key[i];
     }
     result += result >> 1;
     result ^= ~length;
@@ -44,7 +44,7 @@ static inline void allocate_table(struct hashtable* ht) {
     // If the table is empty, create a brand new one
     if (ht->size == 0) {
         // We'll start with a table of INCREMENT_SIZE
-        ht->elements = (struct element**) calloc(INCREMENT_SIZE, sizeof(struct element));
+        ht->elements = (struct element**) calloc(INCREMENT_SIZE, sizeof(struct element *));
         ht->num_elements = 0;
         ht->size = INCREMENT_SIZE;
         return;
@@ -54,7 +54,7 @@ static inline void allocate_table(struct hashtable* ht) {
             new_hash, i, j;
 
         // Make a new array of elements and store the pointer to the old one
-        struct element **new_elements = (struct element**) calloc(new_size, sizeof(struct element));
+        struct element **new_elements = (struct element**) calloc(new_size, sizeof(struct element *));
         struct element **old_elements = ht->elements;
 
         // Copy the old hash table into the new one
@@ -124,7 +124,7 @@ void add_element(struct hashtable* ht, struct element* e) {
         ht->elements[element_hash] = e;
     }
     // Since there was a collision, perform a linear search to find the next open spot
-    int j = element_hash + 1;
+    int j = element_hash;
     while (ht->elements[j] != NULL)
     {
         j++;
@@ -139,12 +139,7 @@ void add_element(struct hashtable* ht, struct element* e) {
 
 // Get an element of the hash table
 static inline struct element* get_element(struct hashtable* ht, const char * key) {
-    int element_hash = hash(key, ht->size);
-    int j = element_hash;
-    // If the element does not exist, return NULL
-    if (ht->elements[element_hash] == NULL) {
-        return NULL;
-    }
+    int j = hash(key, ht->size);
     // Search for the element. If the element does not exist, that is fine
     while (ht->elements[j] != NULL && strcmp(ht->elements[j]->key, key)) {
         j++;

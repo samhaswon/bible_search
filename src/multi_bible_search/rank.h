@@ -12,15 +12,7 @@ typedef struct result_pair {
 } result_pair;
 
 // Counting sort function for result_pair array
-void countingSort(result_pair arr[], int n, long* destination) {
-    // Find the maximum count value in the array
-    uint_fast16_t max = 0;
-    for (int i = 0; i < n; i++) {
-        if (arr[i].count > max) {
-            max = arr[i].count;
-        }
-    }
-
+static inline void countingSort(result_pair arr[], int n, long* destination, const uint_fast16_t max) {
     // Create a count array to store count of each unique count value
     int *count = (int *)calloc(max + 1, sizeof(int));
 
@@ -35,9 +27,11 @@ void countingSort(result_pair arr[], int n, long* destination) {
     }
 
     // Build the output array
+	int tmp_count;
     for (int i = n - 1; i >= 0; i--) {
-        destination[count[arr[i].count] - 1] = arr[i].element;
-        count[arr[i].count]--;
+		tmp_count = arr[i].count;
+        destination[count[tmp_count] - 1] = arr[i].element;
+        count[tmp_count]--;
     }
 
     // Clean up
@@ -48,7 +42,7 @@ void countingSort(result_pair arr[], int n, long* destination) {
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
  */
-void merge(long* dest, size_t dest_len, long* src, size_t src_len) {
+static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len) {
     // Copy of the old destination array
     long *old_dest = (long *) malloc(dest_len * sizeof(long));
     if (!old_dest) {
@@ -100,7 +94,10 @@ static inline int rank(long *array, size_t size, int target) {
 	}
 	// Array of the other results
 	result_pair *others = (result_pair *) malloc(size * sizeof(result_pair));
+	// Temporary result_pair for creating the array of other results
 	result_pair tmp_other;
+	// Max for counting sort
+	uint_fast16_t max = 0;
 	if (others == NULL) {
 		// Attempt to fail gracefully
 		printf("Memory allocation error b!\n");
@@ -127,6 +124,9 @@ static inline int rank(long *array, size_t size, int target) {
 			tmp_other.element = array[i];
 			tmp_other.count = count;
 			others[others_count++] = tmp_other;
+			if (count > max) {
+				max = count;
+			}
 		}
 	}
 
@@ -134,7 +134,7 @@ static inline int rank(long *array, size_t size, int target) {
 	memcpy(array, most_likely, likely_count * sizeof(long));
 
 	// Sort the other results and add them to the correct place in the array
-	countingSort(others, others_count, &array[likely_count]);
+	countingSort(others, others_count, &array[likely_count], max);
 
 	// Free dynamically allocated memory
 	free(most_likely);

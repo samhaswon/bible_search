@@ -162,11 +162,11 @@ def save(data: dict, key: str) -> None:
     # Normal save
     try:
         with bz2.open(f"../src/multi_bible_search/data/{key}.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+            data_file.write(json.dumps(data, separators=(',', ':'), sort_keys=True).encode('utf-8'))
     # Testing save
     except FileNotFoundError:
         with bz2.open(f"./data/{key}.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+            data_file.write(json.dumps(data, separators=(',', ':'), sort_keys=True).encode('utf-8'))
 
 
 if __name__ == '__main__':
@@ -213,6 +213,7 @@ if __name__ == '__main__':
         key_list.extend(reference_index[key].keys())
 
     key_list = list(set(key_list))
+    key_list.sort()
     with open("../keys.txt", "w", encoding="utf-8") as key_file:
         key_file.write(''.join(f"{k}\n" for k in key_list))
     # How long did this take? Because this takes a while to run.

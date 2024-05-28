@@ -42,6 +42,8 @@ class TestSearch(unittest.TestCase):
         self.assertEqual(len(query13), 0)
         query14 = self.bible_search.search("a")
         self.assertGreater(len(query14), 0)
+        query15 = self.bible_search.search("")
+        self.assertEqual(len(query15), 0)
 
     def test_versions(self):
         self.assertIn("KJV", self.bible_search.versions)

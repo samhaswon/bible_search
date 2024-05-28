@@ -1,5 +1,4 @@
 import bz2
-import json
 import os
 import sys
 from typing import List, Union
@@ -41,7 +40,7 @@ class BibleSearch(object):
         """
         base_path = os.path.dirname(os.path.abspath(__file__))
         with bz2.open(f"{base_path}/data/{version}.json.pbz2", "rt", encoding='utf-8') as data_file:
-            self.__c_search.load(json.load(data_file), version)
+            self.__c_search.load(data_file.read(), version)
         if not preload:
             self.__loaded.add(version)
 

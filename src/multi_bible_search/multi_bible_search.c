@@ -4,6 +4,7 @@
 #include <string.h>
 #include "hashtable.h"
 #include "rank.h"
+#include "parse_json.h"
 
 // Tell MSVC it's fine
 #pragma warning(disable : 4996)
@@ -778,16 +779,13 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
 /* 
  * Load an index of either a version or multiple versions.
- * Ideally, this would take in a file pointer or file name and just do the parsing work on the C side of things.
- * For now, this works even if slow.
+ * Ideally, this would take in a file name and just do the parsing *and* extraction work on the C side of things.
  */ 
 PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
-    // The dictionary from Python
-    PyObject* input_dict;
+    const char *json,       // The JSON string
+               *version;    // The version string being loaded
 
-    // The version string being loaded
-    char* version;
-    if (!PyArg_ParseTuple(args, "O|s", &input_dict, &version)) {
+    if (!PyArg_ParseTuple(args, "ss", &json, &version)) {
         PyObject *exception_type = PyExc_RuntimeError;
         PyObject *exception_value = PyUnicode_FromString("Error getting loading arguments!\n");
         PyObject *exception_traceback = NULL;
@@ -831,66 +829,9 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
         Py_RETURN_NONE;
     }
 
-    PyObject *key,      // Dictionary key for iteration
-             *value,    // Pointer to the (list) value in question
-             *long_ptr; // Pointer to a number stored in the current list
-    Py_ssize_t pos = 0;
-
-    // Iterate through the dictionary
-    while (PyDict_Next(input_dict, &pos, &key, &value)) {
-        // Length of the current list 
-        Py_ssize_t list_len = PyList_Size(value);
-
-        // Make a new C list of longs from the length of the Python one
-        long *long_list = (long *) malloc(sizeof(long) * list_len);
-        if (long_list == NULL) {
-            // Raise an exception for the invalid version
-            printf("Error! %d\n", table_index);
-            char error_buff[100];
-            strncpy(error_buff, "Memory allocation l failed when loading index!\n", sizeof(error_buff));
-            PyObject *exception_type = PyExc_RuntimeError;
-            PyObject *exception_value = PyUnicode_FromString(error_buff);
-            PyErr_SetObject(exception_type, exception_value);
-
-            // Return None just in case
-            PyObject* none = Py_None;
-            Py_IncRef(none);
-            return none;
-        }
-        // Copy the Python list into the C one
-        for (Py_ssize_t i = 0; i < list_len; i++) {
-            long_ptr = PyList_GET_ITEM(value, i);
-            long_list[i] = PyLong_AsLong(long_ptr);
-        }
-        // Create a new element for the hashtable
-        struct element *e = (struct element*) malloc(sizeof(struct element));
-        if (e == NULL) {
-            free(long_list);
-            // Raise an exception for the memory allocation failure
-            printf("Error! %d\n", table_index);
-            char error_buff[100];
-            strncpy(error_buff, "Memory allocation e failed when loading index!\n", sizeof(error_buff) - 1);
-            PyObject *exception_type = PyExc_RuntimeError;
-            PyObject *exception_value = PyUnicode_FromString(error_buff);
-            PyErr_SetObject(exception_type, exception_value);
-
-            // Return None just in case
-            Py_RETURN_NONE;
-        }
-        
-        const char *c_key;  // Pointer to the key from Python
-
-        // Get the key from the Python dictionary and use it for the new element
-        c_key = PyUnicode_AsUTF8(key);
-
-        // Build the element
-        strncpy(e->key, c_key, sizeof(e->key) - 1);
-        e->value = long_list;
-        e->length = list_len;
-
-        // And add it
-        add_element(self->ht[table_index], e);
-    }
+    // Parse the input
+    parse_json(json, self->ht[table_index]);
+    
     Py_RETURN_NONE;
 }
 

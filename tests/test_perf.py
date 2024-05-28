@@ -28,7 +28,8 @@ class TestPerf(unittest.TestCase):
     def test_perf(self):
         count = 200_000
         self.bible_search.load('KJV')
-        for _ in range(20):
+        # Warmup
+        for _ in range(200):
             self.bible_search.search("Jesus wept")
         start = time.perf_counter()
         for i in range(count):
@@ -118,8 +119,11 @@ class TestPerf(unittest.TestCase):
         for _ in range(count):
             for key in keys:
                 start = time.perf_counter()
-                self.bible_search.search(key)
+                result = self.bible_search.search(key)
                 end = time.perf_counter()
+                # Do something useful with the exhaustive search
+                self.assertGreater(len(result), 0,
+                                   msg=f"Couldn't find key {key} for some reason. Probably an issue in the C code.")
                 time_accumulator += end - start
         avg_time = time_accumulator / count / len(keys)
         print(f"Total: {time_accumulator:.4f}s\n"

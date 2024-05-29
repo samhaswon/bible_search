@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include "hashtable.h"
 
+// Maximum length of the string of a token (the buffer size - 1)
 #define TOKEN_MAX_LENGTH 24
 
 // Count the number of a character in a string up to length
@@ -15,7 +16,7 @@ static inline size_t char_count(const char *str, const char character, int len) 
     for (int i = 0; i < len; i++) {
         if (str[i] == character) {
             count++;
-            // Each reference is at least 7 characters long, so jump by that much
+            // Each reference is at least 7 characters long, so jump by that much.
             i += 7;
         }
     }
@@ -27,44 +28,56 @@ static inline void parse_json(const char *json, struct hashtable *ht) {
     // Parse the JSON data
     char *ptr = json;
     while ((ptr = strchr(ptr, '\"')) != NULL) {
+        // Find the token
         char *token_start = ptr + 1;
         char *token_end = strchr(token_start, '\"');
-        if (!token_end) {
-            break;
-        }
 
+        // Length of the search token
         size_t token_length = token_end - token_start;
         if (token_length > TOKEN_MAX_LENGTH) {
             break;
         }
 
+        // Temporary element to be added to the hashtable
         struct element *e = (struct element *) malloc(sizeof(struct element));
+        // Copy the key to the element and null terminate it
         strncpy(e->key, token_start, token_length);
         e->key[token_length] = '\0';
 
+        // Start of the array of references
         char *array_start = strchr(token_end + sizeof(char), '[');
-        char *array_end = strchr(array_start, ']');
+        // Each reference is at least 7 characters long, so jump by that much
+        // End of the array of references
+        char *array_end = strchr(array_start + sizeof(char) * 7, ']');
 
+        // Skip the starting bracket itself
         array_start++;
-        char *num_start = array_start, 
-             *num_end;
-        size_t array_size = 0;
-        long *values = NULL, value;
+        char *num_start = array_start,  // Starting index of the string for the number
+             *num_end;                  // Ending index of the string for the number
+        size_t array_size = 0;          // Size/index of the array of references
+        long *values = NULL,            // Array of values from the JSON data
+              value;                    // Parsed value
 
+        // Allocate the array of values based on the number of ',' separators + 1
         values = (long *) malloc((char_count(array_start, ',', array_end - array_start) + 1) * sizeof(long));
 
         while (num_start < array_end) {
+            // Convert the string to a long and add it to the array
             value = strtol(num_start, &num_end, 10);
             values[array_size++] = value;
 
+            // since num_end is the index in the string just after the number (a ','), add 1 to it and use that as our start
             num_start = num_end + 1;
         }
 
+        // Add the array to the element
         e->value = values;
         e->length = array_size;
 
+        // Add the element to the hash table
         add_element(ht, e);
 
+        // Move ptr to the ',' at the end of the array. 
         ptr = array_end + 1;
     }
 

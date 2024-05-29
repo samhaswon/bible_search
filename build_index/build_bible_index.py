@@ -1,4 +1,5 @@
 from bibles import *
+import copy
 from src.multi_bible_search.translate import translate
 import bz2
 import json
@@ -97,13 +98,13 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
     :param versions: Version list to work with.
     :return: Reverse index with duplicate references under "<combine_to>"
     """
-    index_copy = index.copy()
+    index_copy = copy.deepcopy(index)
     all_versions = {}
     for token in index[versions[0]]:
         for match in index[versions[0]][token]:
             exists_in_all = True
             for j in range(1, len(versions)):
-                if token not in index[versions[j]] or match not in index[versions[j]][token]:
+                if token not in index_copy[versions[j]] or match not in index_copy[versions[j]][token]:
                     exists_in_all = False
                     break
             if exists_in_all:
@@ -113,6 +114,8 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
                     all_versions[token].append(match)
                 for i in range(len(versions)):
                     index_copy[versions[i]][token].remove(match)
+                    if len(index_copy[versions[i]][token]) == 0:
+                        del index_copy[versions[i]][token]
     index_copy[combine_to] = all_versions
     return index_copy
 

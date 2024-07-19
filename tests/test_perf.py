@@ -1,6 +1,7 @@
 from src.multi_bible_search.bible_search_adapter import BibleSearch
 import time
 import unittest
+import os
 import sys
 from gc import get_referents
 
@@ -19,6 +20,16 @@ def getsize(obj):
                 need_referents.append(obj)
         objects = get_referents(*need_referents)
     return size
+
+
+def get_directory_size(directory):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            if os.path.isfile(file_path):
+                total_size += os.path.getsize(file_path)
+    return total_size
 
 
 class TestPerf(unittest.TestCase):
@@ -99,8 +110,10 @@ class TestPerf(unittest.TestCase):
         new_kjv_size = (getsize(self.bible_search) + self.bible_search.internal_index_size()) / (1024 ** 2)
         self.bible_search.load_all()
         new_all_size = (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
+        dir_size = get_directory_size("../src/multi_bible_search/data") / (1024 ** 2)
         print(f"KJV Only: {new_kjv_size:.4f} MiB")
-        print(f"All: {new_all_size:.4f} MiB")
+        print(f"All:      {new_all_size:.4f} MiB")
+        print(f"Disk:     {dir_size:.4f} MiB")
         print(f"KJV reduction: {1106.2344970703125 - new_kjv_size:.4f} MiB")
         print(f"All reduction: {1106.2344970703125 - new_all_size:.4f} MiB")
 

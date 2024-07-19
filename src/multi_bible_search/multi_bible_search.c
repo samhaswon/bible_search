@@ -9,7 +9,7 @@
 // Tell MSVC it's fine
 #pragma warning(disable : 4996)
 
-#define NUM_TABLES 31
+#define NUM_TABLES 32
 
 // This is an ever so slight, single use optimization over itoa
 static inline void ref_to_str(uint_fast16_t num, char* str) {
@@ -382,6 +382,7 @@ pair get_table_index(const char* version) {
     // All is assumed, and 0
     // KJV-Like is 1
     // NIV is 2
+    // Literal is 3
     pair indices;
     indices.b = 0;
     switch (version[0])
@@ -391,20 +392,22 @@ pair get_table_index(const char* version) {
         {
         // ACV
         case 'C':
-            indices.a = 3;
+            indices.a = 4;
             break;
         // AKJV
         case 'K':
-            indices.a = 4;
+            indices.a = 5;
             indices.b = 1;
             break;
         // AMP
         case 'M':
-            indices.a = 5;
+            indices.a = 6;
+            indices.b = 3;
             break;
         // ASV
         case 'S':
-            indices.a = 6;
+            indices.a = 7;
+            indices.b = 3;
             break;
         default:
             indices.a = 0;
@@ -417,11 +420,11 @@ pair get_table_index(const char* version) {
         {
         // BBE
         case 'B':
-            indices.a = 7;
+            indices.a = 8;
             break;
         // BSB
         case 'S':
-            indices.a = 8;
+            indices.a = 9;
             break;
         default:
             indices.a = 0;
@@ -431,7 +434,7 @@ pair get_table_index(const char* version) {
 
     case 'C':
         // CSB
-        indices.a = 9;
+        indices.a = 10;
         break;
 
     case 'D':
@@ -439,11 +442,11 @@ pair get_table_index(const char* version) {
         {
         // Darby
         case 'a':
-            indices.a = 10;
+            indices.a = 11;
             break;
         // DRA
         case 'R':
-            indices.a = 11;
+            indices.a = 12;
             break;
 
         default:
@@ -457,11 +460,12 @@ pair get_table_index(const char* version) {
         {
         // EBR
         case 'B':
-            indices.a = 12;
+            indices.a = 13;
             break;
         // ESV
         case 'S':
-            indices.a = 13;
+            indices.a = 14;
+            indices.b = 3;
             break;
 
         default:
@@ -472,7 +476,7 @@ pair get_table_index(const char* version) {
 
     // GNV
     case 'G':
-        indices.a = 14;
+        indices.a = 15;
         break;
 
     case 'K':
@@ -480,12 +484,12 @@ pair get_table_index(const char* version) {
         {
         // KJV
         case 3:
-            indices.a = 15;
+            indices.a = 16;
             indices.b = 1;
             break;
         // KJV 1611
         case 8:
-            indices.a = 16;
+            indices.a = 17;
             indices.b = 1;
             break;
 
@@ -497,12 +501,12 @@ pair get_table_index(const char* version) {
 
     // LSV
     case 'L':
-        indices.a = 17;
+        indices.a = 18;
         break;
 
     // MSG
     case 'M':
-        indices.a = 18;
+        indices.a = 19;
         break;
 
     case 'N':
@@ -510,35 +514,37 @@ pair get_table_index(const char* version) {
         {
         // NASB 1995
         case 'A':
-            indices.a = 19;
+            indices.a = 20;
+            indices.b = 3;
             break;
 
         // NET
         case 'E':
-            indices.a = 20;
+            indices.a = 21;
             break;
 
         // NIVs
         case 'I':
             // NIV 1984
             if (version[4] == '1') {
-                indices.a = 21;
+                indices.a = 22;
             }
             // NIV 2011
             else {
-                indices.a = 22;
+                indices.a = 23;
             }
             indices.b = 2;
             break;
 
         // NKJV
         case 'K':
-            indices.a = 23;
+            indices.a = 24;
+            indices.b = 3;
             break;
 
         // NLT
         case 'L':
-            indices.a = 24;
+            indices.a = 25;
             break;
 
         default:
@@ -552,18 +558,19 @@ pair get_table_index(const char* version) {
         {
         // RNKJV
         case 'N':
-            indices.a = 25;
+            indices.a = 26;
             indices.b = 1;
             break;
 
         // RSV
         case 'S':
-            indices.a = 26;
+            indices.a = 27;
+            indices.b = 3;
             break;
 
         // RWV
         case 'W':
-            indices.a = 27;
+            indices.a = 28;
             break;
 
         default:
@@ -574,18 +581,18 @@ pair get_table_index(const char* version) {
 
     // UKJV
     case 'U':
-        indices.a = 28;
+        indices.a = 29;
         indices.b = 1;
         break;
 
     // WEB
     case 'W':
-        indices.a = 29;
+        indices.a = 30;
         break;
 
     // YLT
     case 'Y':
-        indices.a = 30;
+        indices.a = 31;
         break;
 
     default:
@@ -805,6 +812,9 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     }
     else if (!strcmp(version, "NIV")) {
         table_index = 2;
+    }
+    else if (!strcmp(version, "Literal")) {
+        table_index = 3;
     }
     // If not, use `get_table_index` to find the right one for this version
     else {

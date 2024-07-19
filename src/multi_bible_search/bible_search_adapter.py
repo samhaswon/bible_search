@@ -15,17 +15,18 @@ class BibleSearch(object):
         """
         # Some attributes
         self.__c_search = cBibleSearch()
-        self.__kjv_like: set = {"AKJV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
+        self.__kjv_like: set = {"AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
+        self.__literal: set = {"AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV"}
+        self.__niv: set = {"NIV 1984", "NIV 2011"}
         self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
                                 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
                                 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
 
         # Preload common indices
         self._load_version("All", preload=True)
-        self._load_version("KJV-like", preload=True)
-        self._load_version("NIV", preload=True)
 
         self.__loaded: set = set()
+        self.__preloaded: set = set()
 
         if preload:
             for version in preload:
@@ -54,6 +55,22 @@ class BibleSearch(object):
         # Quick check that the version is valid
         if version not in self.__versions:
             raise KeyError("Invalid version string")
+
+        # Load KJV-like common index if applicable
+        if version in self.__kjv_like and "KJV-like" not in self.__preloaded:
+            self._load_version("KJV-like", preload=True)
+            self.__preloaded.add("KJV-like")
+
+        # Load NIV common index if applicable
+        elif version in self.__niv and "NIV" not in self.__preloaded:
+            self._load_version("NIV", preload=True)
+            self.__preloaded.add("NIV")
+
+        # Load Literal common index if applicable
+        elif version in self.__literal and "Literal" not in self.__preloaded:
+            self._load_version("Literal", preload=True)
+            self.__preloaded.add("Literal")
+
         # Load the version
         self._load_version(version)
 
@@ -62,6 +79,21 @@ class BibleSearch(object):
         Preload all version indices.
         """
         for version in self.__versions:
+            # Load KJV-like common index if applicable
+            if version in self.__kjv_like and "KJV-like" not in self.__preloaded:
+                self._load_version("KJV-like", preload=True)
+                self.__preloaded.add("KJV-like")
+
+            # Load NIV common index if applicable
+            elif version in self.__niv and "NIV" not in self.__preloaded:
+                self._load_version("NIV", preload=True)
+                self.__preloaded.add("NIV")
+
+            # Load Literal common index if applicable
+            elif version in self.__literal and "Literal" not in self.__preloaded:
+                self._load_version("Literal", preload=True)
+                self.__preloaded.add("Literal")
+
             if version not in self.__loaded:
                 self._load_version(version)
 

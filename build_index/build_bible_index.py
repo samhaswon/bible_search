@@ -2,11 +2,30 @@ from bibles import *
 import copy
 from src.multi_bible_search.translate import translate
 import bz2
-import json
 import multiprocessing
+import numpy
 import re
 import time
 from typing import List
+
+
+def encode_json(in_dict: dict) -> str:
+    keys = list(in_dict.keys())
+    keys.sort()
+
+    result_string = "{"
+
+    for key in keys:
+        result_string += f"\"{key}\":["
+        for i in range(len(in_dict[key])):
+            result_string += f"{numpy.base_repr(in_dict[key][i], 36)}{',' if i < len(in_dict[key]) - 1 else ''}"
+        if key != keys[-1]:
+            result_string += "],"
+        else:
+            result_string += "]"
+
+    result_string += "}"
+    return result_string
 
 
 def remove_punctuation(input_string: str) -> str:
@@ -154,9 +173,13 @@ def make_index(bibles: dict) -> dict:
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
     index = separate_duplicates(index, kjv_like, "KJV-like")
 
-    print("Built tertiary index. removing duplicates from the two NIV versions...")
+    print("Built tertiary index. Removing duplicates from the two NIV versions...")
     both_niv = ["NIV 1984", "NIV 2011"]
     index = separate_duplicates(index, both_niv, "NIV")
+
+    print("Built quaternary index. Removing duplicates in Literal translations...")
+    literal = ["AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV"]
+    index = separate_duplicates(index, literal, "Literal")
 
     return index
 
@@ -165,11 +188,11 @@ def save(data: dict, key: str) -> None:
     # Normal save
     try:
         with bz2.open(f"../src/multi_bible_search/data/{key}.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(data, separators=(',', ':'), sort_keys=True).encode('utf-8'))
+            data_file.write(encode_json(data).encode('utf-8'))
     # Testing save
     except FileNotFoundError:
         with bz2.open(f"./data/{key}.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(data, separators=(',', ':'), sort_keys=True).encode('utf-8'))
+            data_file.write(encode_json(data).encode('utf-8'))
 
 
 if __name__ == '__main__':

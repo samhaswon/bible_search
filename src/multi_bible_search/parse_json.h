@@ -9,6 +9,8 @@
 
 // Maximum length of the string of a token (the buffer size - 1)
 #define TOKEN_MAX_LENGTH 24
+#define REF_MIN_LEN 4
+#define REF_NUM_BASE 36
 
 // Count the number of a character in a string up to length
 static inline size_t char_count(const char *str, const char character, int len) {
@@ -17,7 +19,7 @@ static inline size_t char_count(const char *str, const char character, int len) 
         if (str[i] == character) {
             count++;
             // Each reference is at least 7 characters long, so jump by that much.
-            i += 7;
+            i += REF_MIN_LEN;
         }
     }
     return count;
@@ -48,7 +50,7 @@ static inline void parse_json(const char *json, struct hashtable *ht) {
         char *array_start = strchr(token_end + sizeof(char), '[');
         // Each reference is at least 7 characters long, so jump by that much
         // End of the array of references
-        char *array_end = strchr(array_start + sizeof(char) * 7, ']');
+        char *array_end = strchr(array_start + sizeof(char) * REF_MIN_LEN, ']');
 
         // Skip the starting bracket itself
         array_start++;
@@ -63,7 +65,7 @@ static inline void parse_json(const char *json, struct hashtable *ht) {
 
         while (num_start < array_end) {
             // Convert the string to a long and add it to the array
-            value = strtol(num_start, &num_end, 10);
+            value = strtol(num_start, &num_end, REF_NUM_BASE);
             values[array_size++] = value;
 
             // since num_end is the index in the string just after the number (a ','), add 1 to it and use that as our start

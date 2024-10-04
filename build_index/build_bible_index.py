@@ -165,7 +165,7 @@ def make_index(bibles: dict) -> dict:
     index = built_index._getvalue()
 
     # Separate some duplicates
-    print("Built main index. Removing some duplicates across all versions...")
+    print("Built primary index. Removing some duplicates across all versions...")
     index = separate_duplicates(index, versions, "All")
 
     # Separate duplicates in KJV-Like Bibles
@@ -173,13 +173,21 @@ def make_index(bibles: dict) -> dict:
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
     index = separate_duplicates(index, kjv_like, "KJV-like")
 
-    print("Built tertiary index. Removing duplicates from the two NIV versions...")
+    print("Built tertiary index. Removing some duplicates from the two NIV versions...")
     both_niv = ["NIV 1984", "NIV 2011"]
     index = separate_duplicates(index, both_niv, "NIV")
 
-    print("Built quaternary index. Removing duplicates in Literal translations...")
-    literal = ["AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV"]
+    print("Built quaternary index. Removing some duplicates in Literal translations...")
+    literal = ["ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"]
     index = separate_duplicates(index, literal, "Literal")
+
+    print("Built quinary index. Removing some duplicates in Dynamic translations...")
+    dynamic = ["CSB", "NLT", "NET"]
+    index = separate_duplicates(index, dynamic, "Dynamic")
+
+    print("Build senary index. Removing some duplicates in more Literal translations...")
+    literal2 = ["BSB", "LSV", "YLT"]
+    index = separate_duplicates(index, literal2, "Literal2")
 
     return index
 

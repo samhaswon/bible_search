@@ -10,7 +10,7 @@ if os.name == "nt":
              "/fp:fast"         # Faster floating point ops, since precision is not needed for this
              ]
 else:
-    flags = ["-O3"]
+    flags = ["-O3", "-mavx2"]
 
 setup(
     name='multi_bible_search',

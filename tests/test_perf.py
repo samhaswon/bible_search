@@ -111,9 +111,9 @@ class TestPerf(unittest.TestCase):
         self.bible_search.load_all()
         new_all_size = (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
         dir_size = get_directory_size("../src/multi_bible_search/data") / (1024 ** 2)
-        print(f"KJV Only: {new_kjv_size:.4f} MiB")
-        print(f"All:      {new_all_size:.4f} MiB")
-        print(f"Disk:     {dir_size:.4f} MiB")
+        print(f"KJV Only: {new_kjv_size:7.4f} MiB")
+        print(f"All:      {new_all_size:7.4f} MiB")
+        print(f"Disk:     {dir_size:7.4f} MiB")
         print(f"KJV reduction: {1106.2344970703125 - new_kjv_size:.4f} MiB")
         print(f"All reduction: {1106.2344970703125 - new_all_size:.4f} MiB")
 

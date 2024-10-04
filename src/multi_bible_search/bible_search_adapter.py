@@ -15,14 +15,16 @@ class BibleSearch(object):
         """
         # Some attributes
         self.__c_search = cBibleSearch()
+        self.__dynamic: set = {"CSB", "NLT", "NET"}
         self.__kjv_like: set = {"AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
-        self.__literal: set = {"AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV"}
+        self.__literal: set = {"ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"}
+        self.__literal2: set = {"BSB", "LSV", "YLT"}
         self.__niv: set = {"NIV 1984", "NIV 2011"}
         self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
                                 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
                                 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
 
-        # Preload common indices
+        # Preload common index
         self._load_version("All", preload=True)
 
         self.__loaded: set = set()
@@ -71,6 +73,16 @@ class BibleSearch(object):
             self._load_version("Literal", preload=True)
             self.__preloaded.add("Literal")
 
+        # Load Literal2 common index if applicable
+        elif version in self.__literal2 and "Literal2" not in self.__preloaded:
+            self._load_version("Literal2", preload=True)
+            self.__preloaded.add("Literal2")
+
+        # Load Dynamic common index if applicable
+        elif version in self.__dynamic and "Dynamic" not in self.__preloaded:
+            self._load_version("Dynamic", preload=True)
+            self.__preloaded.add("Dynamic")
+
         # Load the version
         self._load_version(version)
 
@@ -93,6 +105,16 @@ class BibleSearch(object):
             elif version in self.__literal and "Literal" not in self.__preloaded:
                 self._load_version("Literal", preload=True)
                 self.__preloaded.add("Literal")
+
+            # Load Literal2 common index if applicable
+            elif version in self.__literal2 and "Literal2" not in self.__preloaded:
+                self._load_version("Literal2", preload=True)
+                self.__preloaded.add("Literal2")
+
+            # Load Dynamic common index if applicable
+            elif version in self.__dynamic and "Dynamic" not in self.__preloaded:
+                self._load_version("Dynamic", preload=True)
+                self.__preloaded.add("Dynamic")
 
             if version not in self.__loaded:
                 self._load_version(version)

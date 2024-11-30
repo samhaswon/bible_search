@@ -776,7 +776,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Rank the results, storing the length of the deduplicated portion of the array
-    result_count = rank(token_result_list, token_result_list_len, num_tokens);
+    result_count = rank(token_result_list, token_result_list_len, num_tokens, max_results);
 
     // By this point: result_count <= token_result_list_len
     if (max_results > result_count) {

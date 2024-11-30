@@ -49,7 +49,7 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
         printf("Memory allocation failure\n");
         return;
     }
-    memcpy(old_dest, dest, dest_len * sizeof(long));
+	memcpy(old_dest, dest, dest_len * sizeof(long));
 
     size_t i = 0,	// Iterator for `old_dest` array
 	       j = 0, 	// Iterator for `src` array
@@ -57,7 +57,7 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
 
 	// Merge the two arrays low to high
     while (i < dest_len && j < src_len) {
-        if (old_dest[i] <= src[j]) {
+        if (old_dest[i] < src[j]) {
             dest[k] = old_dest[i];
             i++;
         }
@@ -81,7 +81,7 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
 }
 
 // Rank elements in the result `array` by their frequency
-static inline int rank(long *array, size_t size, int target) {
+static inline int rank(long *array, size_t size, int target, Py_ssize_t max_results) {
 	if (size == 0 || target == 0) {
 		return size;
 	}
@@ -133,13 +133,20 @@ static inline int rank(long *array, size_t size, int target) {
 	// Copy the temporary arrays into the old one
 	memcpy(array, most_likely, likely_count * sizeof(long));
 
-	// Sort the other results and add them to the correct place in the array
-	countingSort(others, others_count, &array[likely_count], max);
+	if (likely_count < max_results) {
+		// Sort the other results and add them to the correct place in the array
+		countingSort(others, others_count, &array[likely_count], max);
+
+		// Free dynamically allocated memory
+		free(most_likely);
+		free(others);
+		return (likely_count + others_count);
+	}
 
 	// Free dynamically allocated memory
 	free(most_likely);
 	free(others);
-	return (likely_count + others_count);
+	return max_results;
 }
 
 // Convert a string to lowercase

@@ -80,7 +80,7 @@ class TestPerf(unittest.TestCase):
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
 
     def test_perf_long_query(self):
-        count = 100
+        count = 50
         self.bible_search.load('KJV')
         start = time.perf_counter()
         for i in range(count):
@@ -102,7 +102,23 @@ class TestPerf(unittest.TestCase):
                                      max_results=100)
         end = time.perf_counter()
         avg_time = (end - start) / count
-        print(f"Total: {end - start:.4f}s\n"
+        print(f"Excessively long query total: {end - start:.4f}s\n"
+              f"{avg_time:.8f}s per search average")
+
+        start = time.perf_counter()
+        for i in range(count):
+            # Do some searching
+            self.bible_search.search("Then were the king's scribes called at that time in the third month, that is, "
+                                     "the month Sivan, on the three and twentieth day thereof; and it was written "
+                                     "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
+                                     "and the deputies and rulers of the provinces which are from India unto "
+                                     "Ethiopia, an hundred twenty and seven provinces, unto every province according "
+                                     "to the writing thereof, and unto every people after their language, and to the "
+                                     "Jews according to their writing, and according to their language.",
+                                     max_results=100)
+        end = time.perf_counter()
+        avg_time = (end - start) / count
+        print(f"Longest reasonable query total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average")
 
     def test_profile(self):

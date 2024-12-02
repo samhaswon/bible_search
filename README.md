@@ -2,6 +2,8 @@
 
 A Python package for searching multiple versions of the Bible.
 
+This is, in effect, an exhaustive concordance.
+
 ## Installation
 
 ```shell
@@ -47,74 +49,100 @@ Finally, you can unload a version with the `unload_version()` method for a parti
 
 ## Supported Versions
 
-Supported versions can be listed with
+Supported versions can be listed with this:
 
 ```python
-BibleSearch().versions
+from multi_bible_search import BibleSearch
+
+
+searcher = BibleSearch()
+
+# All versions
+searcher.versions
+
+# English versions
+searcher.english_versions
+
+# Spanish versions
+searcher.spanish_versions
 ```
 
 Currently, these versions are supported:
 
-- A Conservative Version (ACV)
+- English
 
-- American King James Version (AKJV)
+  - A Conservative Version (ACV)
 
-- Amplified Bible (AMP)
+  - American King James Version (AKJV)
 
-- American Standard Version (ASV)
+  - Amplified Bible (AMP)
 
-- Bible in Basic English (BBE)
+  - American Standard Version (ASV)
 
-- Berean Standard Bible (BSB)
+  - Bible in Basic English (BBE)
 
-- Christian Standard Bible (CSB)
+  - Berean Standard Bible (BSB)
 
-- Darby Bible (Darby)
+  - Christian Standard Bible (CSB)
 
-- Douay-Rheims 1899 American Edition (DRA)
+  - Darby Bible (Darby)
 
-- Rotherham's Emphasized Bible (EBR)
+  - Douay-Rheims 1899 American Edition (DRA)
 
-- English Standard Version (ESV)
+  - Rotherham's Emphasized Bible (EBR)
 
-- Geneva Bible (GNV)
+  - English Standard Version (ESV)
 
-- King James Version 1769 (KJV)
+  - Geneva Bible (GNV)
 
-- King James Version 1611 (KJV 1611)
+  - King James Version 1769 (KJV)
 
-- Literal Standard Version (LSV)
+  - King James Version 1611 (KJV 1611)
 
-- The Message (MSG)
+  - Literal Standard Version (LSV)
 
-- New American Standard Bible (NASB 1995)
+  - The Message (MSG)
 
-- New English Translation (NET)
+  - New American Standard Bible (NASB 1995)
 
-- New International Version (NIV 1984)
+  - New English Translation (NET)
 
-- New International Version (NIV 2011)
+  - New International Version (NIV 1984)
 
-- New King James Version (NKJV)
+  - New International Version (NIV 2011)
 
-- New Living Translation (NLT)
+  - New King James Version (NKJV)
 
-- Restored Name King James Version (RNKJV)
+  - New Living Translation (NLT)
 
-- Revised Standard Version (RSV)
+  - Restored Name King James Version (RNKJV)
 
-- Revised Webster Version 1833 (RWV)
+  - Revised Standard Version (RSV)
 
-- Updated King James Version (UKJV)
+  - Revised Webster Version 1833 (RWV)
 
-- World English Bible (WEB)
+  - Updated King James Version (UKJV)
 
-- Young’s Literal Translation (YLT)
+  - World English Bible (WEB)
+
+  - Young’s Literal Translation (YLT)
+
+- Spanish
+
+  - La Biblia Textual 3ra Edicion (BTX3)
+
+  - Reina-Valera 1960 (RV1960)
+
+  - Reina Valera Gómez 2004 (RV2004)
 
 Versions can be specified with the `version` parameter in `search()`. The string passed should be the short form of the version name.
 
 For example, you could use:
 ```python 
-BibleSearch().search("Jesus wept", version="ESV")
+from multi_bible_search import BibleSearch
+
+
+searcher = BibleSearch()
+searcher.search("Jesus wept", version="ESV")
 ```
 to search the ESV.

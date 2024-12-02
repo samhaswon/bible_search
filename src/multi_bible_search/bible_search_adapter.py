@@ -20,12 +20,15 @@ class BibleSearch(object):
         self.__literal: set = {"ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"}
         self.__literal2: set = {"BSB", "LSV", "YLT"}
         self.__niv: set = {"NIV 1984", "NIV 2011"}
-        self.__versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
-                                'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
-                                'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
+        self.__esrv: set = {'RV1960', 'RV2004'}
+        self.__english_versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV',
+                                        'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984',
+                                        'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
+        self.__spanish_versions: set = {'BTX3', 'RV1960', 'RV2004'}
+        self.__versions: set = self.__english_versions | self.__spanish_versions
 
         # Preload common index
-        self._load_version("All", preload=True)
+        self._load_version("AllEng", preload=True)
 
         self.__loaded: set = set()
         self.__preloaded: set = set()
@@ -83,6 +86,14 @@ class BibleSearch(object):
             self._load_version("Dynamic", preload=True)
             self.__preloaded.add("Dynamic")
 
+        elif version in self.__spanish_versions and "AllEs" not in self.__preloaded:
+            self._load_version("AllEs", preload=True)
+            self.__preloaded.add("AllEs")
+
+        elif version in self.__esrv and "EsRV" not in self.__preloaded:
+            self._load_version("EsRV", preload=True)
+            self.__preloaded.add("EsRV")
+
         # Load the version
         self._load_version(version)
 
@@ -115,6 +126,14 @@ class BibleSearch(object):
             elif version in self.__dynamic and "Dynamic" not in self.__preloaded:
                 self._load_version("Dynamic", preload=True)
                 self.__preloaded.add("Dynamic")
+
+            elif version in self.__spanish_versions and "AllEs" not in self.__preloaded:
+                self._load_version("AllEs", preload=True)
+                self.__preloaded.add("AllEs")
+
+            elif version in self.__esrv and "EsRV" not in self.__preloaded:
+                self._load_version("EsRV", preload=True)
+                self.__preloaded.add("EsRV")
 
             if version not in self.__loaded:
                 self._load_version(version)
@@ -165,3 +184,11 @@ class BibleSearch(object):
         A list of versions available in the search index.
         """
         return list(self.__versions)
+
+    @property
+    def english_versions(self) -> List[str]:
+        return list(self.__english_versions)
+
+    @property
+    def spanish_versions(self):
+        return list(self.__spanish_versions)

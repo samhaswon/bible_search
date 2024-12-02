@@ -36,7 +36,7 @@ def remove_punctuation(input_string: str) -> str:
     """
     return ''.join(x for x in re.sub(r"\s\s+", " ",
                                      re.sub(
-                                         r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-?!]+|\u2014|\\ul\d",
+                                         r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-¿?¡!°]+|\u2014|\\ul\d",
                                          " ", input_string.replace("\u014D", "o")))
                    if (x.isalpha() or x.isspace()))
 
@@ -166,7 +166,10 @@ def make_index(bibles: dict) -> dict:
 
     # Separate some duplicates
     print("Built primary index. Removing some duplicates across all versions...")
-    index = separate_duplicates(index, versions, "All")
+    english_versions = ['ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
+                        'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
+                        'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT']
+    index = separate_duplicates(index, english_versions, "AllEng")
 
     # Separate duplicates in KJV-Like Bibles
     print("Built secondary index. Removing some duplicates across KJV-like versions...")
@@ -188,6 +191,14 @@ def make_index(bibles: dict) -> dict:
     print("Build senary index. Removing some duplicates in more Literal translations...")
     literal2 = ["BSB", "LSV", "YLT"]
     index = separate_duplicates(index, literal2, "Literal2")
+
+    print("Built septenary index. Removing duplicates in all Spanish indexes...")
+    spanish_versions = ["BTX3", "RV1960", "RV2004"]
+    index = separate_duplicates(index, spanish_versions, "AllEs")
+
+    print("Built octonary index. Removing duplicates in Reina Valera translations.")
+    rv_versions = ["RV1960", "RV2004"]
+    index = separate_duplicates(index, rv_versions, "EsRV")
 
     return index
 
@@ -233,7 +244,10 @@ if __name__ == '__main__':
         'RWV': RWV(),
         'UKJV': UKJV(),
         'WEB': WEB(),
-        'YLT': YLT()
+        'YLT': YLT(),
+        'BTX3': BTX3(),
+        'RV1960': RV1960(),
+        'RV2004': RV2004(),
     }
     # Timer start, because I like stats
     start = time.perf_counter()

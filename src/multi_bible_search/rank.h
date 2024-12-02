@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include "memcpy_long.h"
 
 typedef struct result_pair {
 	long element;
@@ -49,7 +50,7 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
         printf("Memory allocation failure\n");
         return;
     }
-	memcpy(old_dest, dest, dest_len * sizeof(long));
+	memcpy_long(old_dest, dest, dest_len);
 
     size_t i = 0,	// Iterator for `old_dest` array
 	       j = 0, 	// Iterator for `src` array
@@ -70,10 +71,10 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
 
 	// Copy what may remain in either array after merging
     if (i < dest_len) {
-        memcpy(&dest[k], &old_dest[i], (dest_len - i) * sizeof(long));
+        memcpy_long(&dest[k], &old_dest[i], (dest_len - i));
     }
-    if (j < src_len) {
-        memcpy(&dest[k], &src[j], (src_len - j) * sizeof(long));
+    else if (j < src_len) {
+        memcpy_long(&dest[k], &src[j], (src_len - j));
     }
 
     // Free the old destination array
@@ -131,7 +132,7 @@ static inline int rank(long *array, size_t size, int target, Py_ssize_t max_resu
 	}
 
 	// Copy the temporary arrays into the old one
-	memcpy(array, most_likely, likely_count * sizeof(long));
+	memcpy_long(array, most_likely, likely_count);
 
 	if (likely_count < max_results) {
 		// Sort the other results and add them to the correct place in the array

@@ -1,30 +1,42 @@
-from src.multi_bible_search.bible_search_adapter import BibleSearch
-import time
-import unittest
+"""
+Test some of the performance aspects of the search module.
+"""
+
+from gc import get_referents
 import os
 import sys
-from gc import get_referents
+import time
+import unittest
+
+from src.multi_bible_search.bible_search_adapter import BibleSearch
 
 
 def getsize(obj):
-    """sum size of an object & members."""
+    """
+    Sum the size of an object and its members.
+    """
     seen_ids = set()
     size = 0
     objects = [obj]
     while objects:
         need_referents = []
-        for obj in objects:
-            if id(obj) not in seen_ids:
-                seen_ids.add(id(obj))
-                size += sys.getsizeof(obj)
-                need_referents.append(obj)
+        for this_obj in objects:
+            if id(this_obj) not in seen_ids:
+                seen_ids.add(id(this_obj))
+                size += sys.getsizeof(this_obj)
+                need_referents.append(this_obj)
         objects = get_referents(*need_referents)
     return size
 
 
 def get_directory_size(directory):
+    """
+    Get the size of all files in a directory.
+    :param directory: The directory to search.
+    :return: The size of the directory's files in bytes.
+    """
     total_size = 0
-    for dirpath, dirnames, filenames in os.walk(directory):
+    for dirpath, _, filenames in os.walk(directory):
         for filename in filenames:
             file_path = os.path.join(dirpath, filename)
             if os.path.isfile(file_path):
@@ -33,17 +45,26 @@ def get_directory_size(directory):
 
 
 class TestPerf(unittest.TestCase):
+    """
+    Test searching performance.
+    """
     def setUp(self) -> None:
+        """
+        Create the search object.
+        """
         self.bible_search = BibleSearch()
 
     def test_perf(self):
+        """
+        Test the average case performance.
+        """
         count = 200_000
         self.bible_search.load('KJV')
         # Warmup
         for _ in range(200):
             self.bible_search.search("Jesus wept")
         start = time.perf_counter()
-        for i in range(count):
+        for _ in range(count):
             # Do some searching
             self.bible_search.search("Jesus wept")
         end = time.perf_counter()
@@ -51,7 +72,7 @@ class TestPerf(unittest.TestCase):
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
         start = time.perf_counter()
-        for i in range(count):
+        for _ in range(count):
             # Do some searching
             self.bible_search.search("comest goest")
         end = time.perf_counter()
@@ -60,10 +81,13 @@ class TestPerf(unittest.TestCase):
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
 
     def test_perf_max_results(self):
+        """
+        Test the average case performance, but with limited results given to Python.
+        """
         count = 200_000
         self.bible_search.load('KJV')
         start = time.perf_counter()
-        for i in range(count):
+        for _ in range(count):
             # Do some searching
             self.bible_search.search("Jesus wept", max_results=100)
         end = time.perf_counter()
@@ -71,7 +95,7 @@ class TestPerf(unittest.TestCase):
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
         start = time.perf_counter()
-        for i in range(count):
+        for _ in range(count):
             # Do some searching
             self.bible_search.search("comest goest", max_results=100)
         end = time.perf_counter()
@@ -80,10 +104,13 @@ class TestPerf(unittest.TestCase):
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
 
     def test_perf_long_query(self):
+        """
+        Test a couple of worst-case queries.
+        """
         count = 50
         self.bible_search.load('KJV')
         start = time.perf_counter()
-        for i in range(count):
+        for _ in range(count):
             # Do some searching
             self.bible_search.search(
                 "Then were the king's scribes called at that time in the third month, that is, "
@@ -107,7 +134,7 @@ class TestPerf(unittest.TestCase):
               f"{avg_time:.8f}s per search average")
 
         start = time.perf_counter()
-        for i in range(count):
+        for _ in range(count):
             # Do some searching
             self.bible_search.search(
                 "Then were the king's scribes called at that time in the third month, that is, "
@@ -124,6 +151,9 @@ class TestPerf(unittest.TestCase):
               f"{avg_time:.8f}s per search average")
 
     def test_profile(self):
+        """
+        Test the memory usage of the search object with a single version and all versions loaded.
+        """
         self.bible_search.load('KJV')
         new_kjv_size = \
             (getsize(self.bible_search) + self.bible_search.internal_index_size()) / (1024 ** 2)
@@ -138,12 +168,15 @@ class TestPerf(unittest.TestCase):
         print(f"All reduction: {1106.2344970703125 - new_all_size:.4f} MiB")
 
     def test_average_keys(self):
+        """
+        Test the average retrieval speed of single keys.
+        """
         count = 200
-        with open("kjv_keys.txt", "r") as key_file:
+        with open("kjv_keys.txt", "r", encoding="utf-8") as key_file:
             keys = key_file.read().splitlines()
         self.bible_search.load('KJV')
         # warmup
-        for i in range(200):
+        for _ in range(200):
             # Do some searching
             self.bible_search.search("Jesus wept")
 

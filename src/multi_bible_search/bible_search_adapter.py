@@ -7,7 +7,12 @@ import bz2
 import os
 import sys
 from typing import List, Union
+
+# PyCharm and Pylint both can't figure this one out,
+# but it works and is correct.
+# pylint: disable=no-name-in-module
 from .multi_bible_search import BibleSearch as cBibleSearch
+from .invalid_version import InvalidVersion
 
 
 class BibleSearch:
@@ -73,7 +78,7 @@ class BibleSearch:
         """
         # Quick check that the version is valid
         if version not in self.__versions:
-            raise KeyError("Invalid version string")
+            raise InvalidVersion(version)
 
         # load Spanish common index if applicable
         if version in self.__spanish_versions and "AllEs" not in self.__preloaded:
@@ -130,13 +135,13 @@ class BibleSearch:
         Unload a version's index from memory.
         :param version: The version to remove.
         :return: None
-        :raises Exception: If the version is invalid or not loaded, raises an exception.
+        :raises InvalidVersion: If the version is invalid or not loaded, raises an exception.
         """
         if version in self.__versions and version in self.__loaded:
             self.__c_search.unload(version)
             self.__loaded.remove(version)
         else:
-            raise Exception(f"Invalid version {version}")
+            raise InvalidVersion(version)
 
     def search(self, query: str, version: str = "KJV", max_results: int = sys.maxsize) -> List[str]:
         """
@@ -175,8 +180,14 @@ class BibleSearch:
 
     @property
     def english_versions(self) -> List[str]:
+        """
+        A list of English versions available in the search index.
+        """
         return list(self.__english_versions)
 
     @property
     def spanish_versions(self) -> List[str]:
+        """
+        A list of Spanish versions available in the search index.
+        """
         return list(self.__spanish_versions)

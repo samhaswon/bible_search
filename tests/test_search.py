@@ -41,25 +41,53 @@ class TestSearch(unittest.TestCase):
         query13 = self.bible_search.search("w")
         self.assertEqual(len(query13), 0)
         query14 = self.bible_search.search("a")
+        self.assertGreater(len(query14), 0)
+        query15 = self.bible_search.search("")
+        self.assertEqual(len(query15), 0)
 
     def test_versions(self):
+        # Basic version getter
         self.assertIn("KJV", self.bible_search.versions)
         self.assertIn("ESV", self.bible_search.versions)
         self.assertIn("ASV", self.bible_search.versions)
 
+        # Language version getter
+        self.assertIn("KJV", self.bible_search.english_versions)
+        self.assertIn("ESV", self.bible_search.english_versions)
+        self.assertIn("ASV", self.bible_search.english_versions)
+
+        self.assertIn("BTX3", self.bible_search.spanish_versions)
+        self.assertIn("RV1960", self.bible_search.spanish_versions)
+        self.assertIn("RV2004", self.bible_search.spanish_versions)
+
+        self.assertNotIn("KJV", self.bible_search.spanish_versions)
+        self.assertNotIn("BTX3", self.bible_search.english_versions)
+        self.assertNotIn("RV1960", self.bible_search.english_versions)
+        self.assertNotIn("RV2004", self.bible_search.english_versions)
+
     def test_load_all(self):
         """
         Test loading all versions.
-        PyCharm breaks this for some reason.
         """
         self.bible_search.load_all()
         self.assertEqual(self.bible_search.loaded.sort(), self.bible_search.versions.sort())
-        versions = self.bible_search.versions
-        versions.sort()
-        for version in versions:
+        english_versions = self.bible_search.english_versions
+        english_versions.sort()
+        for version in english_versions:
             # print(version)
             result = self.bible_search.search("jesus wept", version)
-            self.assertGreater(len(result), 0)
+            self.assertGreater(len(result), 0, f"Fail for version {version}")
+
+        spanish_versions = self.bible_search.spanish_versions
+        spanish_versions.sort()
+        for version in spanish_versions:
+            result = self.bible_search.search("Jesús lloró", version)
+            self.assertGreater(
+                len(result),
+                0,
+                f"Fail for version {version}.\n"
+                f"Loaded: {self.bible_search.loaded}\n"
+            )
 
     def test_unload_version(self):
         self.bible_search.load("KJV")

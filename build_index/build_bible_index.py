@@ -1,11 +1,31 @@
 from bibles import *
+import copy
 from src.multi_bible_search.translate import translate
 import bz2
-import json
 import multiprocessing
+import numpy
 import re
 import time
 from typing import List
+
+
+def encode_json(in_dict: dict) -> str:
+    keys = list(in_dict.keys())
+    keys.sort()
+
+    result_string = "{"
+
+    for key in keys:
+        result_string += f"\"{key}\":["
+        for i in range(len(in_dict[key])):
+            result_string += f"{numpy.base_repr(in_dict[key][i], 36)}{',' if i < len(in_dict[key]) - 1 else ''}"
+        if key != keys[-1]:
+            result_string += "],"
+        else:
+            result_string += "]"
+
+    result_string += "}"
+    return result_string
 
 
 def remove_punctuation(input_string: str) -> str:
@@ -16,7 +36,7 @@ def remove_punctuation(input_string: str) -> str:
     """
     return ''.join(x for x in re.sub(r"\s\s+", " ",
                                      re.sub(
-                                         r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-?!]+|\u2014|\\ul\d",
+                                         r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-¿?¡!°]+|\u2014|\\ul\d",
                                          " ", input_string.replace("\u014D", "o")))
                    if (x.isalpha() or x.isspace()))
 
@@ -97,13 +117,13 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
     :param versions: Version list to work with.
     :return: Reverse index with duplicate references under "<combine_to>"
     """
-    index_copy = index.copy()
+    index_copy = copy.deepcopy(index)
     all_versions = {}
     for token in index[versions[0]]:
         for match in index[versions[0]][token]:
             exists_in_all = True
             for j in range(1, len(versions)):
-                if token not in index[versions[j]] or match not in index[versions[j]][token]:
+                if token not in index_copy[versions[j]] or match not in index_copy[versions[j]][token]:
                     exists_in_all = False
                     break
             if exists_in_all:
@@ -113,6 +133,8 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
                     all_versions[token].append(match)
                 for i in range(len(versions)):
                     index_copy[versions[i]][token].remove(match)
+                    if len(index_copy[versions[i]][token]) == 0:
+                        del index_copy[versions[i]][token]
     index_copy[combine_to] = all_versions
     return index_copy
 
@@ -143,17 +165,44 @@ def make_index(bibles: dict) -> dict:
     index = built_index._getvalue()
 
     # Separate some duplicates
-    print("Built main index. Removing some duplicates across all versions...")
-    index = separate_duplicates(index, versions, "All")
+    print("Built primary index. Removing some duplicates across all versions...")
+    english_versions = ['ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
+                        'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
+                        'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT']
+    index = separate_duplicates(index, english_versions, "AllEng")
 
     # Separate duplicates in KJV-Like Bibles
     print("Built secondary index. Removing some duplicates across KJV-like versions...")
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
     index = separate_duplicates(index, kjv_like, "KJV-like")
 
-    print("Built tertiary index. removing duplicates from the two NIV versions...")
+    print("Built tertiary index. Removing some duplicates from the two NIV versions...")
     both_niv = ["NIV 1984", "NIV 2011"]
     index = separate_duplicates(index, both_niv, "NIV")
+
+    print("Built quaternary index. Removing some duplicates in Literal translations...")
+    literal = ["ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"]
+    index = separate_duplicates(index, literal, "Literal")
+
+    print("Built quinary index. Removing some duplicates in Dynamic translations...")
+    dynamic = ["CSB", "NLT", "NET"]
+    index = separate_duplicates(index, dynamic, "Dynamic")
+
+    print("Build senary index. Removing some duplicates in more Literal translations...")
+    literal2 = ["BSB", "LSV", "YLT"]
+    index = separate_duplicates(index, literal2, "Literal2")
+
+    print("Built septenary index. Removing duplicates in all Spanish indexes...")
+    spanish_versions = ["BTX3", "RV1960", "RV2004"]
+    index = separate_duplicates(index, spanish_versions, "AllEs")
+
+    print("Built octonary index. Removing duplicates in Reina Valera translations...")
+    rv_versions = ["RV1960", "RV2004"]
+    index = separate_duplicates(index, rv_versions, "EsRV")
+
+    print("Built nonary index. Removing duplicates from some assorted English versions...")
+    extra_eng = ["Darby", "EBR"]
+    index = separate_duplicates(index, extra_eng, "ExtraEng")
 
     return index
 
@@ -162,11 +211,11 @@ def save(data: dict, key: str) -> None:
     # Normal save
     try:
         with bz2.open(f"../src/multi_bible_search/data/{key}.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+            data_file.write(encode_json(data).encode('utf-8'))
     # Testing save
     except FileNotFoundError:
         with bz2.open(f"./data/{key}.json.pbz2", "wb") as data_file:
-            data_file.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+            data_file.write(encode_json(data).encode('utf-8'))
 
 
 if __name__ == '__main__':
@@ -199,7 +248,10 @@ if __name__ == '__main__':
         'RWV': RWV(),
         'UKJV': UKJV(),
         'WEB': WEB(),
-        'YLT': YLT()
+        'YLT': YLT(),
+        'BTX3': BTX3(),
+        'RV1960': RV1960(),
+        'RV2004': RV2004(),
     }
     # Timer start, because I like stats
     start = time.perf_counter()
@@ -213,8 +265,11 @@ if __name__ == '__main__':
         key_list.extend(reference_index[key].keys())
 
     key_list = list(set(key_list))
+    key_list.sort()
     with open("../keys.txt", "w", encoding="utf-8") as key_file:
         key_file.write(''.join(f"{k}\n" for k in key_list))
+    key_lengths = [len(x) for x in key_list]
+    print(f"Longest key: {max(key_lengths)}")
     # How long did this take? Because this takes a while to run.
     end = time.perf_counter()
     print(f"Index time: {end - start:.4f}")

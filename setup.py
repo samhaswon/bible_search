@@ -1,7 +1,9 @@
 """
-Set-up the multi-bible-search extension.
+Set up the multi-bible-search extension.
 """
 import os
+
+# pylint: disable=import-error
 from setuptools import setup, Extension
 
 

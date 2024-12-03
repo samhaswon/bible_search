@@ -318,7 +318,7 @@ static inline char **tokenize(const char * input_string, int *num_tokens, int *l
 
     const char *ptr = input_string;
     const char *start;
-    int count = 0, token_len;
+    uint64_t count = 0, token_len;
 
     // Tokenize the string based on spaces
     while (*ptr != '\0') {

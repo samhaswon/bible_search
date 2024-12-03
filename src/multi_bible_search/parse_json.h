@@ -7,6 +7,9 @@
 #include <ctype.h>
 #include "hashtable.h"
 
+// Tell MSVC it's fine
+#pragma warning(disable : 4996)
+
 // Maximum length of the string of a token (the buffer size - 1)
 #define TOKEN_MAX_LENGTH 24
 #define REF_MIN_LEN 4

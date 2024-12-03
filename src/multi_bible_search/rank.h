@@ -82,7 +82,7 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
 // Rank elements in the result `array` by their frequency
 static inline int rank(long *array, size_t size, int target, Py_ssize_t max_results) {
     if (size == 0 || target == 0) {
-        return size;
+        return 0;
     }
     // Array of the other results
     result_pair *others = (result_pair *) malloc(size * sizeof(result_pair));
@@ -93,12 +93,12 @@ static inline int rank(long *array, size_t size, int target, Py_ssize_t max_resu
     if (others == NULL) {
         // Attempt to fail gracefully
         printf("Memory allocation error b!\n");
-        return size;
+        return 0;
     }
     
-    int likely_count = 0,     // Size of the likely array
-        others_count = 0,     // Size of the others array
-        max_index = size - 1; // The maximum index of the array
+    int likely_count = 0,        // Size of the likely array
+        others_count = 0;        // Size of the others array
+    size_t max_index = size - 1; // The maximum index of the array
 
 	// The current target element
 	long element;

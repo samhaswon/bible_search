@@ -365,11 +365,11 @@ typedef struct {
 // triple of associated references
 typedef struct triple{
     // Language index
-    unsigned short lang;
+    uint_fast8_t lang;
     // Version index
-    unsigned short a;
+    uint_fast8_t a;
     // Extra index (if applicable)
-    unsigned short b;
+    uint_fast8_t b;
 } triple;
 
 
@@ -602,14 +602,14 @@ triple get_table_index(const char* version) {
             switch (version[2])
             {
             // RV1960
-            case 1:
+            case '1':
                 indices.a = COMBINED_INDEX_OFFSET + 26;
                 indices.b = ES_RV;
                 indices.lang = SPANISH_ALL;
                 break;
             
             // RV2004
-            case 2:
+            case '2':
                 indices.a = COMBINED_INDEX_OFFSET + 27;
                 indices.b = ES_RV;
                 indices.lang = SPANISH_ALL;

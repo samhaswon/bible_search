@@ -56,6 +56,15 @@ class TestSearch(unittest.TestCase):
         self.assertIn("ESV", self.bible_search.english_versions)
         self.assertIn("ASV", self.bible_search.english_versions)
 
+        self.assertIn("BTX3", self.bible_search.spanish_versions)
+        self.assertIn("RV1960", self.bible_search.spanish_versions)
+        self.assertIn("RV2004", self.bible_search.spanish_versions)
+
+        self.assertNotIn("KJV", self.bible_search.spanish_versions)
+        self.assertNotIn("BTX3", self.bible_search.english_versions)
+        self.assertNotIn("RV1960", self.bible_search.english_versions)
+        self.assertNotIn("RV2004", self.bible_search.english_versions)
+
     def test_load_all(self):
         """
         Test loading all versions.
@@ -73,7 +82,12 @@ class TestSearch(unittest.TestCase):
         spanish_versions.sort()
         for version in spanish_versions:
             result = self.bible_search.search("Jesús lloró", version)
-            self.assertGreater(len(result), 0, f"Fail for version {version}")
+            self.assertGreater(
+                len(result),
+                0,
+                f"Fail for version {version}.\n"
+                f"Loaded: {self.bible_search.loaded}\n"
+            )
 
     def test_unload_version(self):
         self.bible_search.load("KJV")

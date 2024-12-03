@@ -53,28 +53,26 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
 	memcpy_long(old_dest, dest, dest_len);
 
     size_t i = 0,	// Iterator for `old_dest` array
-	       j = 0, 	// Iterator for `src` array
-		   k = 0;	// Iterator for `dest` array
+	       j = 0; 	// Iterator for `src` array
 
 	// Merge the two arrays low to high
     while (i < dest_len && j < src_len) {
         if (old_dest[i] < src[j]) {
-            dest[k] = old_dest[i];
+            *dest++ = old_dest[i];
             i++;
         }
         else {
-            dest[k] = src[j];
+            *dest++ = src[j];
             j++;
         }
-        k++;
     }
 
 	// Copy what may remain in either array after merging
     if (i < dest_len) {
-        memcpy_long(&dest[k], &old_dest[i], (dest_len - i));
+        memcpy_long(dest, &old_dest[i], (dest_len - i));
     }
     else if (j < src_len) {
-        memcpy_long(&dest[k], &src[j], (src_len - j));
+        memcpy_long(dest, &src[j], (src_len - j));
     }
 
     // Free the old destination array

@@ -196,9 +196,13 @@ def make_index(bibles: dict) -> dict:
     spanish_versions = ["BTX3", "RV1960", "RV2004"]
     index = separate_duplicates(index, spanish_versions, "AllEs")
 
-    print("Built octonary index. Removing duplicates in Reina Valera translations.")
+    print("Built octonary index. Removing duplicates in Reina Valera translations...")
     rv_versions = ["RV1960", "RV2004"]
     index = separate_duplicates(index, rv_versions, "EsRV")
+
+    print("Built nonary index. Removing duplicates from some assorted English versions...")
+    extra_eng = ["Darby", "EBR"]
+    index = separate_duplicates(index, extra_eng, "ExtraEng")
 
     return index
 

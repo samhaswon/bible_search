@@ -23,6 +23,7 @@ class BibleSearch(object):
         self.__literal2: set = {"BSB", "LSV", "YLT"}
         self.__niv: set = {"NIV 1984", "NIV 2011"}
         self.__esrv: set = {'RV1960', 'RV2004'}
+        self.__extra_english: set = {"Darby", "EBR"}
 
         # Language sets
         self.__english_versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV',
@@ -98,9 +99,15 @@ class BibleSearch(object):
             self._load_version("Dynamic", preload=True)
             self.__preloaded.add("Dynamic")
 
+        # Load the common index of some common Spanish versions
         elif version in self.__esrv and "EsRV" not in self.__preloaded:
             self._load_version("EsRV", preload=True)
             self.__preloaded.add("EsRV")
+
+        # Load the index of some assorted English versions
+        elif version in self.__extra_english and "ExtraEng" not in self.__preloaded:
+            self._load_version("ExtraEng", preload=True)
+            self.__preloaded.add("ExtraEng")
 
         # Load the version
         self._load_version(version)

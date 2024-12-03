@@ -9,7 +9,7 @@
 // Tell MSVC it's fine
 #pragma warning(disable : 4996)
 
-#define NUM_TABLES 39
+#define NUM_TABLES 40
 
 // Combined indices
 #define ENGLISH_ALL 0
@@ -20,9 +20,10 @@
 #define LITERAL2 5
 #define DYNAMIC 6
 #define ES_RV 7
+#define EXTRA_ENG 8
 
 // This should be the same as the highest combined index's index
-#define COMBINED_INDEX_OFFSET 7
+#define COMBINED_INDEX_OFFSET 8
 
 // This is an ever so slight, single use optimization over itoa
 static inline void ref_to_str(uint_fast16_t num, char* str) {
@@ -401,6 +402,7 @@ triple get_table_index(const char* version) {
     // Literal2 is 5
     // Dynamic is 6
     // Spanish Reina Valera is 7
+    // Extra English is 8
     triple indices;
     indices.lang = ENGLISH_ALL;
     indices.b = 0;
@@ -470,6 +472,7 @@ triple get_table_index(const char* version) {
         // Darby
         case 'a':
             indices.a = COMBINED_INDEX_OFFSET + 9;
+            indices.b = EXTRA_ENG;
             break;
         // DRA
         case 'R':
@@ -488,6 +491,7 @@ triple get_table_index(const char* version) {
         // EBR
         case 'B':
             indices.a = COMBINED_INDEX_OFFSET + 11;
+            indices.b = EXTRA_ENG;
             break;
         // ESV
         case 'S':
@@ -891,10 +895,13 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     else if (!strcmp(version, "EsRV")) {
         table_index = ES_RV;
     }
+    else if (!strcmp(version, "ExtraEng")) {
+        table_index = EXTRA_ENG;
+    }
     // If not, use `get_table_index` to find the right one for this version
     else {
         table_index = get_table_index(version).a;
-        // Make sure thtat the version is valid
+        // Make sure that the version is valid
         if (!table_index) {
             // Raise an exception for the invalid version
             printf("Error! %d\n", table_index);

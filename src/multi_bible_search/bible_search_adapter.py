@@ -26,6 +26,12 @@ class BibleSearch:
         # (C) Search object
         self.__c_search = cBibleSearch()
 
+        if len(os.listdir(os.path.join(__file__[:-23], "data"))) < 40:
+            from .bible_downloader import BibleDownloader
+
+            downloader = BibleDownloader()
+            downloader.download()
+
         # Common sets
         self.__dynamic: set = {"CSB", "NLT", "NET"}
         self.__kjv_like: set = {"AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"}

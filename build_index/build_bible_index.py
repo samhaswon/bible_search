@@ -264,6 +264,8 @@ if __name__ == '__main__':
     key_list.sort()
     with open("../keys.txt", "w", encoding="utf-8") as key_file:
         key_file.write(''.join(f"{k}\n" for k in key_list))
+    key_lengths = [len(x) for x in key_list]
+    print(f"Longest key: {max(key_lengths)}")
     # How long did this take? Because this takes a while to run.
     end = time.perf_counter()
     print(f"Index time: {end - start:.4f}")

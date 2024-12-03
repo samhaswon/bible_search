@@ -14,7 +14,7 @@
 // struct representing an element of the hash table
 struct element
 {
-    char key[25];
+    char key[20];
     long* value;
     int length;
 };

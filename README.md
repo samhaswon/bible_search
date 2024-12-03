@@ -135,7 +135,8 @@ Currently, these versions are supported:
 
   - Reina Valera Gómez 2004 (RV2004)
 
-Versions can be specified with the `version` parameter in `search()`. The string passed should be the short form of the version name.
+Versions can be specified with the `version` parameter in `search()`. 
+The string passed should be the short form of the version name.
 
 For example, you could use:
 ```python 

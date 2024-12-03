@@ -84,13 +84,6 @@ static inline int rank(long *array, size_t size, int target, Py_ssize_t max_resu
     if (size == 0 || target == 0) {
         return size;
     }
-    // Array of the most likely search results
-    long *most_likely = (long *) malloc(size * sizeof(long));
-    if (most_likely == NULL) {
-        // Attempt to fail gracefully
-        printf("Memory allocation error a!\n");
-        return size;
-    }
     // Array of the other results
     result_pair *others = (result_pair *) malloc(size * sizeof(result_pair));
     // Temporary result_pair for creating the array of other results
@@ -105,23 +98,27 @@ static inline int rank(long *array, size_t size, int target, Py_ssize_t max_resu
     
     int likely_count = 0,     // Size of the likely array
         others_count = 0,     // Size of the others array
-        max_index = size - 1;
+        max_index = size - 1; // The maximum index of the array
+
+	// The current target element
+	long element;
 
     // Find duplicates of the desired count
     for (uint_fast32_t i = 0; i < size; i++) {
         uint_fast32_t count = 1;
+		element = array[i];
         // Find the count of this element
-        while (i < max_index && array[i] == array[i + 1]) {
+        while (i < max_index && element == array[i + 1]) {
             count++;
             i++;
         }
         // If it's what we're looking for, add it to the likely array
         if (count == target) {
-            most_likely[likely_count++] = array[i];
+            array[likely_count++] = element;
         }
         // Otherwise, put it in others
         else {
-            tmp_other.element = array[i];
+            tmp_other.element = element;
             tmp_other.count = count;
             others[others_count++] = tmp_other;
             if (count > max) {
@@ -130,21 +127,16 @@ static inline int rank(long *array, size_t size, int target, Py_ssize_t max_resu
         }
     }
 
-    // Copy the temporary arrays into the old one
-    memcpy_long(array, most_likely, likely_count);
-
     if (likely_count < max_results) {
         // Sort the other results and add them to the correct place in the array
         countingSort(others, others_count, &array[likely_count], max);
 
         // Free dynamically allocated memory
-        free(most_likely);
         free(others);
         return (likely_count + others_count);
     }
 
     // Free dynamically allocated memory
-    free(most_likely);
     free(others);
     return max_results;
 }

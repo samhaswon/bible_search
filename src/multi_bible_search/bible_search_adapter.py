@@ -1,3 +1,8 @@
+"""
+Adapter class for the C implementation of the search engine.
+This mostly just makes it easier to work with the module
+by automatically managing version indexes which the C class does not do.
+"""
 import bz2
 import os
 import sys
@@ -5,7 +10,7 @@ from typing import List, Union
 from .multi_bible_search import BibleSearch as cBibleSearch
 
 
-class BibleSearch(object):
+class BibleSearch:
     """
     Search versions of the Bible
     """
@@ -26,9 +31,10 @@ class BibleSearch(object):
         self.__extra_english: set = {"Darby", "EBR"}
 
         # Language sets
-        self.__english_versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV',
-                                        'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984',
-                                        'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
+        self.__english_versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby',
+                                        'DRA', 'EBR', 'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV',
+                                        'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
+                                        'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
         self.__spanish_versions: set = {'BTX3', 'RV1960', 'RV2004'}
 
         # Every supported version
@@ -155,7 +161,8 @@ class BibleSearch(object):
     @property
     def loaded(self) -> List[str]:
         """
-        A list of the versions currently loaded in the search object. This does not include common indices.
+        A list of the versions currently loaded in the search object.
+        This does not include common indices.
         """
         return list(self.__loaded)
 

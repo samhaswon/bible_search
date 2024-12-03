@@ -85,21 +85,22 @@ class TestPerf(unittest.TestCase):
         start = time.perf_counter()
         for i in range(count):
             # Do some searching
-            self.bible_search.search("Then were the king's scribes called at that time in the third month, that is, "
-                                     "the month Sivan, on the three and twentieth day thereof; and it was written "
-                                     "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
-                                     "and the deputies and rulers of the provinces which are from India unto "
-                                     "Ethiopia, an hundred twenty and seven provinces, unto every province according "
-                                     "to the writing thereof, and unto every people after their language, and to the "
-                                     "Jews according to their writing, and according to their language. Then were the "
-                                     "king's scribes called at that time in the third month, that is, "
-                                     "the month Sivan, on the three and twentieth day thereof; and it was written "
-                                     "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
-                                     "and the deputies and rulers of the provinces which are from India unto "
-                                     "Ethiopia, an hundred twenty and seven provinces, unto every province according "
-                                     "to the writing thereof, and unto every people after their language, and to the "
-                                     "Jews according to their writing, and according to their language.",
-                                     max_results=100)
+            self.bible_search.search(
+                "Then were the king's scribes called at that time in the third month, that is, "
+                "the month Sivan, on the three and twentieth day thereof; and it was written "
+                "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
+                "and the deputies and rulers of the provinces which are from India unto "
+                "Ethiopia, an hundred twenty and seven provinces, unto every province according "
+                "to the writing thereof, and unto every people after their language, and to the "
+                "Jews according to their writing, and according to their language. Then were the "
+                "king's scribes called at that time in the third month, that is, "
+                "the month Sivan, on the three and twentieth day thereof; and it was written "
+                "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
+                "and the deputies and rulers of the provinces which are from India unto "
+                "Ethiopia, an hundred twenty and seven provinces, unto every province according "
+                "to the writing thereof, and unto every people after their language, and to the "
+                "Jews according to their writing, and according to their language.",
+                max_results=100)
         end = time.perf_counter()
         avg_time = (end - start) / count
         print(f"Excessively long query total: {end - start:.4f}s\n"
@@ -108,14 +109,15 @@ class TestPerf(unittest.TestCase):
         start = time.perf_counter()
         for i in range(count):
             # Do some searching
-            self.bible_search.search("Then were the king's scribes called at that time in the third month, that is, "
-                                     "the month Sivan, on the three and twentieth day thereof; and it was written "
-                                     "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
-                                     "and the deputies and rulers of the provinces which are from India unto "
-                                     "Ethiopia, an hundred twenty and seven provinces, unto every province according "
-                                     "to the writing thereof, and unto every people after their language, and to the "
-                                     "Jews according to their writing, and according to their language.",
-                                     max_results=100)
+            self.bible_search.search(
+                "Then were the king's scribes called at that time in the third month, that is, "
+                "the month Sivan, on the three and twentieth day thereof; and it was written "
+                "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
+                "and the deputies and rulers of the provinces which are from India unto "
+                "Ethiopia, an hundred twenty and seven provinces, unto every province according "
+                "to the writing thereof, and unto every people after their language, and to the "
+                "Jews according to their writing, and according to their language.",
+                max_results=100)
         end = time.perf_counter()
         avg_time = (end - start) / count
         print(f"Longest reasonable query total: {end - start:.4f}s\n"
@@ -123,9 +125,11 @@ class TestPerf(unittest.TestCase):
 
     def test_profile(self):
         self.bible_search.load('KJV')
-        new_kjv_size = (getsize(self.bible_search) + self.bible_search.internal_index_size()) / (1024 ** 2)
+        new_kjv_size = \
+            (getsize(self.bible_search) + self.bible_search.internal_index_size()) / (1024 ** 2)
         self.bible_search.load_all()
-        new_all_size = (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
+        new_all_size = \
+            (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
         dir_size = get_directory_size("../src/multi_bible_search/data") / (1024 ** 2)
         print(f"KJV Only: {new_kjv_size:7.4f} MiB")
         print(f"All:      {new_all_size:7.4f} MiB")
@@ -151,8 +155,12 @@ class TestPerf(unittest.TestCase):
                 result = self.bible_search.search(key)
                 end = time.perf_counter()
                 # Do something useful with the exhaustive search
-                self.assertGreater(len(result), 0,
-                                   msg=f"Couldn't find key {key} for some reason. Probably an issue in the C code.")
+                self.assertGreater(
+                    len(result),
+                    0,
+                    msg=f"Couldn't find key {key} for some reason. "
+                        f"Probably an issue in the C code."
+                )
                 time_accumulator += end - start
         avg_time = time_accumulator / count / len(keys)
         print(f"Total: {time_accumulator:.4f}s\n"

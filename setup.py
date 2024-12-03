@@ -10,6 +10,7 @@ from setuptools import setup, Extension
 from setuptools.command.build_py import build_py
 
 
+# pylint: disable=too-few-public-methods
 class CustomBuild(build_py):
     """
     Custom build to download indices at build time from GitHub LFS

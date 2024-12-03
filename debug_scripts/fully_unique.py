@@ -1,5 +1,10 @@
-from src.multi_bible_search import BibleSearch
+"""
+Find a token in version_keys.txt
+"""
+
 import faulthandler
+
+from src.multi_bible_search import BibleSearch
 
 
 faulthandler.enable()
@@ -7,18 +12,18 @@ searcher = BibleSearch()
 searcher.load_all()
 
 
-with open("version_keys.txt", "r") as token_file:
+with open("version_keys.txt", "r", encoding="utf-8") as token_file:
     tokens = token_file.read().splitlines()
 
 unique_tokens = []
 
 for token in tokens:
-    unique = 0
+    UNIQUE = 0
     for version in searcher.versions:
         result = searcher.search(token, version)
         if len(result):
-            unique += 1
-    if unique < 2:
+            UNIQUE += 1
+    if UNIQUE < 2:
         unique_tokens.append(token)
 
 if len(unique_tokens) == 0:

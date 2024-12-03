@@ -1,5 +1,11 @@
-from setuptools import setup, Extension
+"""
+Set up the multi-bible-search extension.
+"""
 import os
+
+# pylint: disable=import-error
+from setuptools import setup, Extension
+
 
 if os.name == "nt":
     # MSVC flags

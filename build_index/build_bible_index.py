@@ -1,25 +1,39 @@
-from bibles import *
+"""
+Build the index of the supported Bible versions.
+This takes a while.
+"""
+# pylint: disable=import-error,wildcard-import
 import copy
-from src.multi_bible_search.translate import translate
 import bz2
 import multiprocessing
-import numpy
 import re
 import time
 from typing import List
 
+import numpy
+
+from bibles import *
+from src.multi_bible_search.translate import translate
+
 
 def encode_json(in_dict: dict) -> str:
+    """
+    Encodes the given dictionary as the project's custom JSON format string.
+    :param in_dict: The dictionary to encode.
+    :return: The string form of the dictionary.
+    """
     keys = list(in_dict.keys())
     keys.sort()
 
     result_string = "{"
 
-    for key in keys:
-        result_string += f"\"{key}\":["
-        for i in range(len(in_dict[key])):
-            result_string += f"{numpy.base_repr(in_dict[key][i], 36)}{',' if i < len(in_dict[key]) - 1 else ''}"
-        if key != keys[-1]:
+    for this_key in keys:
+        result_string += f"\"{this_key}\":["
+        for i in range(len(in_dict[this_key])):
+            result_string += \
+                (f"{numpy.base_repr(in_dict[this_key][i], 36)}"
+                 f"{',' if i < len(in_dict[this_key]) - 1 else ''}")
+        if this_key != keys[-1]:
             result_string += "],"
         else:
             result_string += "]"
@@ -34,11 +48,12 @@ def remove_punctuation(input_string: str) -> str:
     :param input_string: String to process
     :return: cleaned string
     """
-    return ''.join(x for x in re.sub(r"\s\s+", " ",
-                                     re.sub(
-                                         r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-¿?¡!°]+|\u2014|\\ul\d",
-                                         " ", input_string.replace("\u014D", "o")))
-                   if (x.isalpha() or x.isspace()))
+    return ''.join(
+        x for x in re.sub(r"\s\s+", " ",
+                          re.sub(
+                              r"[\u0080-\uffef](s?(?=\W))|['\"]s?|[,.:;\-¿?¡!°]+|\u2014|\\ul\d",
+                              " ", input_string.replace("\u014D", "o")))
+        if (x.isalpha() or x.isspace()))
 
 
 def tokenize(input_string: str) -> List[str]:
@@ -50,6 +65,7 @@ def tokenize(input_string: str) -> List[str]:
     return remove_punctuation(input_string.replace("I-chabod", "Ichabod").lower()).split()
 
 
+# pylint: disable=too-many-branches,too-many-nested-blocks
 def index_bible(bible, name: str, result) -> None:
     """
     Builds the (reverse) index of a given Bible version.
@@ -69,23 +85,25 @@ def index_bible(bible, name: str, result) -> None:
             for heading in passage_result.keys():
                 # Tokenize each verse, adding its reference
                 previous_verse = 1
-                for passage in passage_result[heading]:
+                for this_passage in passage_result[heading]:
                     try:
-                        verse = int(passage[0:passage.find(" ")])
+                        verse = int(this_passage[0:this_passage.find(" ")])
                     except ValueError:
                         verse = previous_verse
                     else:
                         previous_verse = verse
-                    tokens = list(set(tokenize(passage[passage.find(" "):])))
+                    tokens = list(set(tokenize(this_passage[this_passage.find(" "):])))
                     reference = translate(book, chapter, verse)
                     for token in tokens:
                         if len(token) == 1 and token != "a":
                             continue
                         # XML source issue
-                        elif token in {"lxx", "syr", "vg", "heb", "etc", "isha", "ish", "aleph", "kol"}:
+                        if token in {
+                            "lxx", "syr", "vg", "heb", "etc", "isha", "ish", "aleph", "kol"
+                        }:
                             continue
                         # ????
-                        elif token == 'ij':
+                        if token == 'ij':
                             token = "i"
                         # Typo in the source?
                         elif token == "ad":
@@ -100,8 +118,8 @@ def index_bible(bible, name: str, result) -> None:
                             tmp_index["naharaim"].append(reference)
                             continue
                         try:
-                            a = token.encode("ascii")
-                        except:
+                            token.encode("ascii")
+                        except UnicodeError:
                             continue
                         if token not in tmp_index:
                             tmp_index[token] = []
@@ -123,7 +141,8 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
         for match in index[versions[0]][token]:
             exists_in_all = True
             for j in range(1, len(versions)):
-                if token not in index_copy[versions[j]] or match not in index_copy[versions[j]][token]:
+                if (token not in index_copy[versions[j]] or
+                        match not in index_copy[versions[j]][token]):
                     exists_in_all = False
                     break
             if exists_in_all:
@@ -131,7 +150,7 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
                     all_versions[token] = [match]
                 else:
                     all_versions[token].append(match)
-                for i in range(len(versions)):
+                for i, _ in enumerate(versions):
                     index_copy[versions[i]][token].remove(match)
                     if len(index_copy[versions[i]][token]) == 0:
                         del index_copy[versions[i]][token]
@@ -139,10 +158,11 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
     return index_copy
 
 
-def make_index(bibles: dict) -> dict:
+# pylint: disable=too-many-locals,consider-using-with
+def make_index(bibles_in: dict) -> dict:
     """
     Build the (reverse) src index of the given Bibles.
-    :param bibles: A dictionary of Bible objects where the name of the version is the key.
+    :param bibles_in: A dictionary of Bible objects where the name of the version is the key.
     :return: Dictionary of src index for each version.
     """
 
@@ -150,25 +170,27 @@ def make_index(bibles: dict) -> dict:
     num_processes = multiprocessing.cpu_count() - 1
     manager = multiprocessing.Manager()
     built_index = manager.dict({})
-    versions = list(bibles.keys())
+    versions = list(bibles_in.keys())
     pool = multiprocessing.Pool(processes=num_processes)
 
     # Spread out work to the pool
     for version in versions:
-        pool.apply_async(index_bible, args=(bibles[version], version, built_index,))
+        pool.apply_async(index_bible, args=(bibles_in[version], version, built_index,))
 
     # Start, do the work, and wait for results
     pool.close()
     pool.join()
 
     # Dereference the dictionary to a normal one per the documentation
+    # pylint: disable=no-member,protected-access
     index = built_index._getvalue()
 
     # Separate some duplicates
     print("Built primary index. Removing some duplicates across all versions...")
-    english_versions = ['ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
-                        'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
-                        'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT']
+    english_versions = ['ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR',
+                        'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET',
+                        'NIV 1984', 'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV',
+                        'WEB', 'YLT']
     index = separate_duplicates(index, english_versions, "AllEng")
 
     # Separate duplicates in KJV-Like Bibles
@@ -207,18 +229,25 @@ def make_index(bibles: dict) -> dict:
     return index
 
 
-def save(data: dict, key: str) -> None:
+def save(data: dict, index_name: str) -> None:
+    """
+    Saves a given index with name.
+    :param data: The index to save.
+    :param index_name: The name to save the index with.
+    :return: None.
+    """
     # Normal save
     try:
-        with bz2.open(f"../src/multi_bible_search/data/{key}.json.pbz2", "wb") as data_file:
+        with bz2.open(f"../src/multi_bible_search/data/{index_name}.json.pbz2", "wb") as data_file:
             data_file.write(encode_json(data).encode('utf-8'))
     # Testing save
     except FileNotFoundError:
-        with bz2.open(f"./data/{key}.json.pbz2", "wb") as data_file:
+        with bz2.open(f"./data/{index_name}.json.pbz2", "wb") as data_file:
             data_file.write(encode_json(data).encode('utf-8'))
 
 
 if __name__ == '__main__':
+    # pylint: disable=undefined-variable
     # Bible object initialization
     bibles = {
         'ACV': ACV(),

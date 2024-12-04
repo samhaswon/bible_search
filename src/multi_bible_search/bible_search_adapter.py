@@ -26,7 +26,13 @@ class BibleSearch:
         # (C) Search object
         self.__c_search = cBibleSearch()
 
-        if len(os.listdir(os.path.join(__file__[:-23], "data"))) < 40:
+        try:
+            if len(os.listdir(os.path.join(__file__[:-23], "data"))) < 40:
+                from .bible_downloader import BibleDownloader
+
+                downloader = BibleDownloader()
+                downloader.download()
+        except FileNotFoundError:
             from .bible_downloader import BibleDownloader
 
             downloader = BibleDownloader()

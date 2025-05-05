@@ -766,7 +766,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
             }
 
             // Copy previous token results
-            if (result_count && token_result_list_len > result_count) { //  && token_result_list ?
+            if (result_count && token_result_list_len > result_count) {
                 token_result_list = realloc(token_result_list, sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
@@ -781,30 +781,25 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
                     return result_list;
                 }
             }
-            else {
-                continue;
-            }
 
             // Add results from all
             if (result_all != NULL) {
                 // Merge results from all
                 result_count = merge_results(token_result_list, result_count, result_all->value, result_all->length);
-                // result_count += result_all->length;
             }
 
             // Get results for version:
             if (result_version != NULL) {
                 // Merge results from this version
                 result_count = merge_results(token_result_list, result_count, result_version->value, result_version->length);
-                // result_count += result_version->length;
             }
 
             // If applicable, get results from extra index:
             if (result_combined != NULL) {
                 // Merge any results from the extra index
                 result_count = merge_results(token_result_list, result_count, result_combined->value, result_combined->length);
-                // result_count += result_combined->length;
             }
+            token_result_list_len = result_count;
         }
         // Free the dynamically allocated tokens
         for (int i = 0; i < len_tokens; i++)

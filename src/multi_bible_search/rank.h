@@ -44,46 +44,6 @@ static inline void countingSort(result_pair arr[], int n, long* destination, con
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
  */
-static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len) {
-    // Copy of the old destination array
-    long *old_dest = (long *) malloc(dest_len * sizeof(long));
-    if (!old_dest) {
-        printf("Memory allocation failure\n");
-        return;
-    }
-    memcpy_long(old_dest, dest, dest_len);
-
-    size_t i = 0,     // Iterator for `old_dest` array
-           j = 0;     // Iterator for `src` array
-
-    // Merge the two arrays low to high
-    while (i < dest_len && j < src_len) {
-        if (old_dest[i] < src[j]) {
-            *dest++ = old_dest[i];
-            i++;
-        }
-        else {
-            *dest++ = src[j];
-            j++;
-        }
-    }
-
-    // Copy what may remain in either array after merging
-    if (i < dest_len) {
-        memcpy_long(dest, &old_dest[i], (dest_len - i));
-    }
-    else if (j < src_len) {
-        memcpy_long(dest, &src[j], (src_len - j));
-    }
-
-    // Free the old destination array
-    free(old_dest);
-}
-
-/*
- * Merge two (individually sorted) lists together.
- * Assumes that the size of `dest` is `dest_len + src_len` 
- */
 static inline size_t merge_results(result_pair* dest, size_t dest_len, const long* src, size_t src_len) {
     // Copy of the old destination array
     result_pair *old = malloc(dest_len * sizeof(result_pair));
@@ -99,10 +59,8 @@ static inline size_t merge_results(result_pair* dest, size_t dest_len, const lon
     while (i < dest_len && j < src_len) {
         long val_old = old[i].element;
         long val_src = src[j];
-        if (val_old < val_src) {
-            dest[k++] = old[i++];
-        } 
-        else if (val_old == val_src) {
+         
+        if (val_old == val_src) {
             // Copy old entry, then add src occurrences
             dest[k] = old[i];
             // Count how many times src[j] repeats
@@ -115,6 +73,9 @@ static inline size_t merge_results(result_pair* dest, size_t dest_len, const lon
             k++;
             i++;
         } 
+        else if (val_old < val_src) {
+            dest[k++] = old[i++];
+        }
         else {
             // New element from src
             long current = val_src;

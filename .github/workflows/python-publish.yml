@@ -31,15 +31,16 @@ jobs:
 
       - name: Build sdist
         run: |
-          pip install build
           python -m build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
+          name: sdist-${{ github.run_id }}
           path: dist/*.tar.gz
+
   build_wheels_windows:
     name: Build wheel on windows-latest
-    needs: [build_sdist]
+    needs: build_sdist
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -47,7 +48,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: sdist-${{ github.run_id }}
           path: dist
 
       - uses: actions/setup-python@v4
@@ -64,10 +65,12 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
+          name: wheels-windows-${{ github.run_id }}
           path: ./wheelhouse/*.whl
+
   deploy:
     needs: [build_wheels_windows, build_sdist]
-    name: deploy wheels to pypi
+    name: Deploy wheels to PyPI
     runs-on: ubuntu-latest
     environment: pypi-release
     permissions:
@@ -75,8 +78,15 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: wheels-*
+          merge-multiple: true
           path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdist-${{ github.run_id }}
+          path: dist
+
       - uses: pypa/gh-action-pypi-publish@v1.8.11
         with:
           user: __token__

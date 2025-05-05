@@ -2,6 +2,7 @@
 Set up the multi-bible-search extension.
 """
 import os
+import platform
 
 # pylint: disable=import-error
 from setuptools import setup, Extension
@@ -15,8 +16,10 @@ if os.name == "nt":
              "/arch:AVX2",  # For some reason, AVX2 is faster than AVX512 in my testing.
              "/fp:fast"  # Faster floating point ops, since precision is not needed for this
              ]
-else:
+elif "arm" not in platform.processor() and "Arm" not in platform.processor():
     flags = ["-O3", "-mavx2"]
+else:
+    flags = ["-O3"]
 
 setup(
     name='multi_bible_search',

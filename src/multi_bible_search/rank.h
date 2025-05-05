@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "memcpy_long.h"
 
 typedef struct result_pair {
@@ -79,15 +80,91 @@ static inline void merge(long* dest, size_t dest_len, long* src, size_t src_len)
     free(old_dest);
 }
 
+/*
+ * Merge two (individually sorted) lists together.
+ * Assumes that the size of `dest` is `dest_len + src_len` 
+ */
+static inline size_t merge_results(result_pair* dest, size_t dest_len, long* src, size_t src_len) {
+    // Copy of the old destination array
+    result_pair *old_dest = (result_pair *) malloc(dest_len * sizeof(result_pair));
+    if (!old_dest) {
+        printf("Memory allocation failure\n");
+        return 0;
+    }
+    memcpy(old_dest, dest, dest_len * sizeof(result_pair));
+
+    size_t i = 0,     // Iterator for `old_dest` array
+           j = 0,     // Iterator for `src` array
+           s = 0;     // Size of results
+
+    // Merge the two arrays low to high
+    while (i < dest_len && j < src_len) {
+        if (old_dest[i].element < src[j]) {
+            *dest++ = old_dest[i];
+            i++;
+            s++;
+        }
+        else if (old_dest[i].element == src[j]) {
+            if (dest->element != old_dest[i].element) {
+                *dest = old_dest[i];
+            }
+            dest->count++;
+            dest++;
+            j++;
+        }
+        else {
+            dest->element = src[j];
+            dest->count = 1;
+            dest++;
+            j++;
+            s++;
+        }
+    }
+
+    // Copy what may remain in either array after merging
+    if (i < dest_len) {
+        memcpy(dest, &old_dest[i], (dest_len - i) * sizeof(result_pair));
+        s += (dest_len - i);
+    }
+    else if (j < src_len) {
+        s += (src_len - j);
+        long last_element = -1;
+        bool needs_increment = false;
+        for (; j < src_len; j++) {
+            if (last_element == src[j]) {
+                dest->count++;
+                needs_increment = true;
+            }
+            else if (needs_increment) {
+                dest++;
+                dest->element = src[j];
+                dest->count = 1;
+                last_element = src[j];
+            }
+            else {
+                dest->element = src[j];
+                dest->count = 1;
+                last_element = src[j];
+                needs_increment = true;
+            }
+            // dest->element = src[j];
+            // dest->count = 1;
+            // dest++;
+        }
+    }
+
+    // Free the old destination array
+    free(old_dest);
+    return s;
+}
+
 // Rank elements in the result `array` by their frequency
-static inline int rank(long *array, size_t size, int target, Py_ssize_t max_results) {
+static inline int rank(result_pair *array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
     if (size == 0 || target == 0) {
         return 0;
     }
     // Array of the other results
     result_pair *others = (result_pair *) malloc(size * sizeof(result_pair));
-    // Temporary result_pair for creating the array of other results
-    result_pair tmp_other;
     // Max for counting sort
     uint_fast16_t max = 0;
     if (others == NULL) {
@@ -105,31 +182,22 @@ static inline int rank(long *array, size_t size, int target, Py_ssize_t max_resu
 
     // Find duplicates of the desired count
     for (uint_fast32_t i = 0; i < size; i++) {
-        uint_fast32_t count = 1;
-		element = array[i];
-        // Find the count of this element
-        while (i < max_index && element == array[i + 1]) {
-            count++;
-            i++;
-        }
         // If it's what we're looking for, add it to the likely array
-        if (count == target) {
-            array[likely_count++] = element;
+        if (array[i].count == target) {
+            token_target[likely_count++] = array[i].element;
         }
         // Otherwise, put it in others
         else {
-            tmp_other.element = element;
-            tmp_other.count = count;
-            others[others_count++] = tmp_other;
-            if (count > max) {
-                max = count;
+            others[others_count++] = array[i];
+            if (array[i].count > max) {
+                max = array[i].count;
             }
         }
     }
 
     if (likely_count < max_results) {
         // Sort the other results and add them to the correct place in the array
-        countingSort(others, others_count, &array[likely_count], max);
+        countingSort(others, others_count, &token_target[likely_count], max);
 
         // Free dynamically allocated memory
         free(others);

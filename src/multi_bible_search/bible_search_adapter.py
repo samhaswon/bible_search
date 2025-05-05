@@ -76,7 +76,11 @@ class BibleSearch:
         :return: None
         """
         base_path = os.path.dirname(os.path.abspath(__file__))
-        with bz2.open(f"{base_path}/data/{version}.json.pbz2", "rt", encoding='utf-8') as data_file:
+        with bz2.open(
+                f"{base_path}/data/{version}.json.pbz2",
+                "rt",
+                encoding='utf-8'
+        ) as data_file:
             self.__c_search.load(data_file.read(), version)
         if not preload:
             self.__loaded.add(version)
@@ -155,7 +159,12 @@ class BibleSearch:
         else:
             raise InvalidVersion(version)
 
-    def search(self, query: str, version: str = "KJV", max_results: int = sys.maxsize) -> List[str]:
+    def search(
+            self,
+            query: str,
+            version: str = "KJV",
+            max_results: int = sys.maxsize
+    ) -> List[str]:
         """
         Search for a passage in the Bible.
         :param query: The search query string.

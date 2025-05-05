@@ -53,7 +53,10 @@ class TestSearch(unittest.TestCase):
         query7 = self.bible_search.search(
             "And Israel dwelt in the land of Egypt, in the country of Goshen; and they "
             "had possessions therein, and grew, and multiplied exceedingly.")
-        self.assertIn("Genesis 47:27", query7[:3], "Actual index: " + str(query7.index("Genesis 47:27")))
+        self.assertIn(
+            "Genesis 47:27", query7[:3],
+            "Actual index: " + str(query7.index("Genesis 47:27"))
+        )
         query8 = self.bible_search.search("notawordinthebible")
         self.assertEqual(len(query8), 0)
         query9 = self.bible_search.search("Jesus wept", "ESV")

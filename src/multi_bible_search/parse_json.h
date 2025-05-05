@@ -21,7 +21,7 @@ static inline size_t char_count(const char *str, const char character, int len) 
     for (int i = 0; i < len; i++) {
         if (str[i] == character) {
             count++;
-            // Each reference is at least 7 characters long, so jump by that much.
+            // Each reference is at least 4 characters long, so jump by that much.
             i += REF_MIN_LEN;
         }
     }

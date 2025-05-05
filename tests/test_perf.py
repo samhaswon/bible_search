@@ -69,16 +69,20 @@ class TestPerf(unittest.TestCase):
             self.bible_search.search("Jesus wept")
         end = time.perf_counter()
         avg_time = (end - start) / count
+        print("Average case, no limit:")
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
+        print("-" * 20)
         start = time.perf_counter()
         for _ in range(count):
             # Do some searching
             self.bible_search.search("comest goest")
         end = time.perf_counter()
         avg_time = (end - start) / count
+        print("Uncommon token pair:")
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
+        print("-" * 20)
 
     def test_perf_max_results(self):
         """
@@ -92,16 +96,20 @@ class TestPerf(unittest.TestCase):
             self.bible_search.search("Jesus wept", max_results=100)
         end = time.perf_counter()
         avg_time = (end - start) / count
+        print("Common case, limit of 100 results")
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
+        print("-" * 20)
         start = time.perf_counter()
         for _ in range(count):
             # Do some searching
             self.bible_search.search("comest goest", max_results=100)
         end = time.perf_counter()
         avg_time = (end - start) / count
+        print("Uncommon token pair, limit of 100 results:")
         print(f"Total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
+        print("-" * 20)
 
     def test_perf_long_query(self):
         """
@@ -132,6 +140,7 @@ class TestPerf(unittest.TestCase):
         avg_time = (end - start) / count
         print(f"Excessively long query total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average")
+        print("-" * 20)
 
         start = time.perf_counter()
         for _ in range(count):
@@ -149,6 +158,7 @@ class TestPerf(unittest.TestCase):
         avg_time = (end - start) / count
         print(f"Longest reasonable query total: {end - start:.4f}s\n"
               f"{avg_time:.8f}s per search average")
+        print("-" * 20)
 
     def test_profile(self):
         """
@@ -196,8 +206,10 @@ class TestPerf(unittest.TestCase):
                 )
                 time_accumulator += end - start
         avg_time = time_accumulator / count / len(keys)
+        print("Average retrieval time for 1 key:")
         print(f"Total: {time_accumulator:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
+        print("-" * 20)
 
 
 if __name__ == '__main__':

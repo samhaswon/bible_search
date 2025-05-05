@@ -722,8 +722,10 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     // Tokenize the query
     tokens = tokenize(query1, &num_tokens, &len_tokens);
 
-    // Pointer to the C list of results
-    long *token_result_list = NULL;
+    // Pointers to the C lists of results
+    result_pair *token_result_list = NULL;
+    long *token_result_list_longs = NULL;
+
     size_t result_count = 0,            // Current number of results
            token_result_list_len = 0;   // Allocated length of the result list
 
@@ -764,8 +766,8 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
             }
 
             // Copy previous token results
-            if (result_count && token_result_list_len > result_count) { //  && token_result_list ?
-                token_result_list = realloc(token_result_list, sizeof(long) * token_result_list_len);
+            if (result_count && token_result_list_len > result_count) {
+                token_result_list = realloc(token_result_list, sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
                     return result_list;
@@ -773,36 +775,31 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
             }
             else if (token_result_list_len > 0 && token_result_list == NULL) {
                 // Allocate a temporary list of results
-                token_result_list = malloc(sizeof(long) * token_result_list_len);
+                token_result_list = malloc(sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
                     return result_list;
                 }
             }
-            else {
-                continue;
-            }
 
             // Add results from all
             if (result_all != NULL) {
                 // Merge results from all
-                merge(token_result_list, result_count, result_all->value, result_all->length);
-                result_count += result_all->length;
+                result_count = merge_results(token_result_list, result_count, result_all->value, result_all->length);
             }
 
             // Get results for version:
             if (result_version != NULL) {
                 // Merge results from this version
-                merge(token_result_list, result_count, result_version->value, result_version->length);
-                result_count += result_version->length;
+                result_count = merge_results(token_result_list, result_count, result_version->value, result_version->length);
             }
 
             // If applicable, get results from extra index:
             if (result_combined != NULL) {
                 // Merge any results from the extra index
-                merge(token_result_list, result_count, result_combined->value, result_combined->length);
-                result_count += result_combined->length;
+                result_count = merge_results(token_result_list, result_count, result_combined->value, result_combined->length);
             }
+            token_result_list_len = result_count;
         }
         // Free the dynamically allocated tokens
         for (int i = 0; i < len_tokens; i++)
@@ -822,7 +819,11 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Rank the results, storing the length of the deduplicated portion of the array
-    result_count = rank(token_result_list, token_result_list_len, num_tokens, max_results);
+    token_result_list_longs = (long*) malloc(result_count * sizeof(long));
+    if (token_result_list_longs == NULL) {
+        goto token_free;
+    }
+    result_count = rank(token_result_list, result_count, num_tokens, max_results, token_result_list_longs);
 
     // By this point: result_count <= token_result_list_len
     if (max_results > result_count) {
@@ -831,7 +832,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
     for (size_t i = 0; i < max_results; i++) {
         // Translate the reference and add it to the Python list
-        str_ref = rtranslate(token_result_list[i]);
+        str_ref = rtranslate(token_result_list_longs[i]);
         // Make sure the result isn't None. Basically another double check of the Python side of things.
         if (str_ref != NULL) {
             // Add the resulting Python string to the list
@@ -842,9 +843,13 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         }
     }
 
-    // Free the dynamically allocated list 
+token_free:
+    // Free the dynamically allocated lists
     if (token_result_list != NULL) {
         free(token_result_list);
+    }
+    if (token_result_list_longs != NULL) {
+        free(token_result_list_longs);
     }
 
     // Give Python it's form of the results

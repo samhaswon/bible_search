@@ -31,6 +31,7 @@ class TestSearch(unittest.TestCase):
             "hospitality, a lover of good men, sober, just, holy, temperate"
         )
         self.assertIn("Titus 1:8", query2)
+        self.assertIn("Titus 1:8", query2[:5], "Actual index: " + str(query2.index("Titus 1:8")))
         query3 = self.bible_search.search("elect")
         self.assertIn("Titus 1:1", query3)
         self.assertIn("Romans 8:33", query3)
@@ -52,15 +53,22 @@ class TestSearch(unittest.TestCase):
         query7 = self.bible_search.search(
             "And Israel dwelt in the land of Egypt, in the country of Goshen; and they "
             "had possessions therein, and grew, and multiplied exceedingly.")
-        self.assertIn("Genesis 47:27", query7[:3])
+        self.assertIn("Genesis 47:27", query7[:3], "Actual index: " + str(query7.index("Genesis 47:27")))
         query8 = self.bible_search.search("notawordinthebible")
         self.assertEqual(len(query8), 0)
         query9 = self.bible_search.search("Jesus wept", "ESV")
         self.assertGreater(len(query9), 0)
+        self.assertIn('John 11:35', query9[:5])
         query10 = self.bible_search.search(
             "And your feet shod with the preparation of the gospel of peace"
         )
+        self.assertIn("Ephesians 6:15", query10)
         self.assertEqual("Ephesians 6:15", query10[0])
+        query11 = self.bible_search.search(
+            "But a lover of hospitality, a lover of good men, sober, just, holy, temperate;"
+        )
+        self.assertIn("Titus 1:8", query11)
+        self.assertIn("Titus 1:8", query11[:5])
 
     def test_query_edge_cases(self):
         """

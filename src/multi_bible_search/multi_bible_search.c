@@ -734,7 +734,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     // If the version is invalid, return. Just in case something is wrong in the Python adapter
     if (!table_index.a) {
         free(tokens);
-        Py_RETURN_NONE;
+        return PyList_New(0);
     }
 
     // Make sure we have tokens, then search
@@ -767,7 +767,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
                 token_result_list = realloc(token_result_list, sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
-                    Py_RETURN_NONE;
+                    return PyList_New(0);
                 }
             }
             else if (token_result_list_len > 0 && token_result_list == NULL) {
@@ -775,7 +775,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
                 token_result_list = malloc(sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
-                    Py_RETURN_NONE;
+                    return PyList_New(0);
                 }
             }
 
@@ -826,13 +826,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     if (token_result_list_longs == NULL) {
         goto token_free;
     }
-    // LARGE_INTEGER freq, start, end;
-    // QueryPerformanceFrequency(&freq);
-    // QueryPerformanceCounter(&start);
     result_count = rank(token_result_list, result_count, num_tokens, max_results, token_result_list_longs);
-    // QueryPerformanceCounter(&end);
-    // double elapsed = ((double)(end.QuadPart - start.QuadPart) / freq.QuadPart) * 1000000;
-    // printf("Rank took %.9fμs to execute\n", elapsed);
     // By this point: result_count <= token_result_list_len
     if (max_results > result_count) {
         max_results = result_count;

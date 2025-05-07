@@ -710,9 +710,6 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     // Hash table indicies to get from
     triple table_index = get_table_index(version);
 
-    // Python list of results
-    PyObject* result_list = PyList_New(0);
-
     // Temporary pointer to the Python string of the reference
     PyObject* str_ref;
 
@@ -737,7 +734,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     // If the version is invalid, return. Just in case something is wrong in the Python adapter
     if (!table_index.a) {
         free(tokens);
-        return result_list;
+        Py_RETURN_NONE;
     }
 
     // Make sure we have tokens, then search
@@ -770,7 +767,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
                 token_result_list = realloc(token_result_list, sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
-                    return result_list;
+                    Py_RETURN_NONE;
                 }
             }
             else if (token_result_list_len > 0 && token_result_list == NULL) {
@@ -778,7 +775,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
                 token_result_list = malloc(sizeof(result_pair) * token_result_list_len);
                 if (token_result_list == NULL) {
                     printf("Internal allocation error\n");
-                    return result_list;
+                    Py_RETURN_NONE;
                 }
             }
 
@@ -816,6 +813,12 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     else {
         // Raise exception?
         printf("Failed to tokenize query\n");
+        PyObject *exception_type = PyExc_RuntimeError;
+        PyObject *exception_value = PyUnicode_FromString("Failed to tokenize query\n");
+        PyObject *exception_traceback = NULL;
+        PyErr_SetObject(exception_type, exception_value);
+
+        goto token_free;
     }
 
     // Rank the results, storing the length of the deduplicated portion of the array
@@ -823,12 +826,20 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     if (token_result_list_longs == NULL) {
         goto token_free;
     }
+    // LARGE_INTEGER freq, start, end;
+    // QueryPerformanceFrequency(&freq);
+    // QueryPerformanceCounter(&start);
     result_count = rank(token_result_list, result_count, num_tokens, max_results, token_result_list_longs);
-
+    // QueryPerformanceCounter(&end);
+    // double elapsed = ((double)(end.QuadPart - start.QuadPart) / freq.QuadPart) * 1000000;
+    // printf("Rank took %.9fμs to execute\n", elapsed);
     // By this point: result_count <= token_result_list_len
     if (max_results > result_count) {
         max_results = result_count;
     }
+
+    // Python list of results
+    PyObject* result_list = PyList_New(result_count);
 
     for (size_t i = 0; i < max_results; i++) {
         // Translate the reference and add it to the Python list
@@ -836,10 +847,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
         // Make sure the result isn't None. Basically another double check of the Python side of things.
         if (str_ref != NULL) {
             // Add the resulting Python string to the list
-            PyList_Append(result_list, str_ref);
-
-            // We're done with it, so decrement the reference counter.
-            Py_DecRef(str_ref);
+            PyList_SET_ITEM(result_list, i, str_ref);
         }
     }
 

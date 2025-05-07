@@ -14,7 +14,7 @@ typedef struct result_pair {
 } result_pair;
 
 // Counting sort function for result_pair array
-static inline void countingSort(result_pair arr[], int n, long* destination, const uint_fast16_t max) {
+static inline void countingSort(const result_pair * restrict arr, int n, long* destination, const uint_fast16_t max) {
     // Create a count array to store count of each unique count value
     int *count = (int *)calloc(max + 1, sizeof(int));
 
@@ -44,7 +44,7 @@ static inline void countingSort(result_pair arr[], int n, long* destination, con
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
  */
-static inline size_t merge_results(result_pair* dest, size_t dest_len, const long* src, size_t src_len) {
+static inline size_t merge_results(result_pair * restrict dest, size_t dest_len, const long * restrict src, size_t src_len) {
     // Copy of the old destination array
     result_pair *old = malloc(dest_len * sizeof(result_pair));
     if (!old) {
@@ -113,7 +113,7 @@ static inline size_t merge_results(result_pair* dest, size_t dest_len, const lon
 }
 
 // Rank elements in the result `array` by their frequency
-static inline size_t rank(result_pair *array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
+static inline size_t rank(const result_pair * restrict array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
     if (size == 0 || target == 0) {
         return 0;
     }
@@ -130,9 +130,6 @@ static inline size_t rank(result_pair *array, size_t size, int target, Py_ssize_
     int likely_count = 0,        // Size of the likely array
         others_count = 0;        // Size of the others array
     size_t max_index = size - 1; // The maximum index of the array
-
-	// The current target element
-	long element;
 
     // Find duplicates of the desired count
     for (uint_fast32_t i = 0; i < size; i++) {

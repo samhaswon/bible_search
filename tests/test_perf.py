@@ -115,7 +115,7 @@ class TestPerf(unittest.TestCase):
         """
         Test a couple of worst-case queries.
         """
-        count = 50
+        count = 100
         self.bible_search.load('KJV')
         start = time.perf_counter()
         for _ in range(count):

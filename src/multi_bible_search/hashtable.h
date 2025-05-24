@@ -116,7 +116,7 @@ void add_element(struct hashtable* ht, struct element* e) {
         return;
     }
     // Check if this element happens to be a duplicate. Probably could remove this
-    if (!strncmp(ht->elements[element_hash]->key, e->key, sizeof(e->key))) {
+    if (!strcmp(ht->elements[element_hash]->key, e->key)) {
         free(ht->elements[element_hash]->value);
         free(ht->elements[element_hash]);
         allocate_table(ht);

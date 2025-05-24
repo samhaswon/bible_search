@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include "memcpy_long.h"
 
 typedef struct result_pair {
@@ -14,37 +13,63 @@ typedef struct result_pair {
 } result_pair;
 
 // Counting sort function for result_pair array
-static inline void countingSort(result_pair arr[], int n, long* destination, const uint_fast16_t max) {
-    // Create a count array to store count of each unique count value
-    int *count = (int *)calloc(max + 1, sizeof(int));
+static inline void countingSort(const result_pair * restrict arr, int n, long* destination, const uint_fast16_t max) {
+    // Stack-based for most cases, the path branch prediction should take
+    if (max <= 180) {
+        // On‐stack count array
+        int count[181] = {0};
 
-    // Store the count of each count value
-    for (int i = 0; i < n; i++) {
-        count[arr[i].count]++;
+        // Store the count of each count value
+        for (int i = 0; i < n; i++) {
+            count[arr[i].count]++;
+        }
+
+        // Change count[i] so that count[i] contains the actual position of this count in the output array
+        for (int i = max - 1; i >= 0; i--) {
+            count[i] += count[i + 1];
+        }
+
+        // Build the output array
+        int tmp_count;
+        for (int i = n - 1; i >= 0; i--) {
+            tmp_count = arr[i].count;
+            destination[count[tmp_count] - 1] = arr[i].element;
+            count[tmp_count]--;
+        }
     }
+    // Heap allocation for extreme edge cases
+    else {
+        // Create a count array to store count of each unique count value dynamically
+        int *count = (int *)calloc(max + 1, sizeof(int));
 
-    // Change count[i] so that count[i] contains the actual position of this count in the output array
-    for (int i = max - 1; i >= 0; i--) {
-        count[i] += count[i + 1];
+        // Store the count of each count value
+        for (int i = 0; i < n; i++) {
+            count[arr[i].count]++;
+        }
+
+        // Change count[i] so that count[i] contains the actual position of this count in the output array
+        for (int i = max - 1; i >= 0; i--) {
+            count[i] += count[i + 1];
+        }
+
+        // Build the output array
+        int tmp_count;
+        for (int i = n - 1; i >= 0; i--) {
+            tmp_count = arr[i].count;
+            destination[count[tmp_count] - 1] = arr[i].element;
+            count[tmp_count]--;
+        }
+
+        // Clean up
+        free(count);
     }
-
-    // Build the output array
-    int tmp_count;
-    for (int i = n - 1; i >= 0; i--) {
-        tmp_count = arr[i].count;
-        destination[count[tmp_count] - 1] = arr[i].element;
-        count[tmp_count]--;
-    }
-
-    // Clean up
-    free(count);
 }
 
 /*
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
  */
-static inline size_t merge_results(result_pair* dest, size_t dest_len, const long* src, size_t src_len) {
+static inline size_t merge_results(result_pair * restrict dest, size_t dest_len, const long * restrict src, size_t src_len) {
     // Copy of the old destination array
     result_pair *old = malloc(dest_len * sizeof(result_pair));
     if (!old) {
@@ -113,7 +138,7 @@ static inline size_t merge_results(result_pair* dest, size_t dest_len, const lon
 }
 
 // Rank elements in the result `array` by their frequency
-static inline size_t rank(result_pair *array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
+static inline size_t rank(const result_pair * restrict array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
     if (size == 0 || target == 0) {
         return 0;
     }
@@ -130,9 +155,6 @@ static inline size_t rank(result_pair *array, size_t size, int target, Py_ssize_
     int likely_count = 0,        // Size of the likely array
         others_count = 0;        // Size of the others array
     size_t max_index = size - 1; // The maximum index of the array
-
-	// The current target element
-	long element;
 
     // Find duplicates of the desired count
     for (uint_fast32_t i = 0; i < size; i++) {

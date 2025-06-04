@@ -77,21 +77,21 @@ class TestSearch(unittest.TestCase):
         self.assertIn("Titus 1:8", query11[:5])
         # Make sure this doesn't fail. It has 189 tokens so that it sorts on the heap.
         query12 = self.bible_search.search(
-                "Then were the king's scribes called at that time in the third month, that is, "
-                "the month Sivan, on the three and twentieth day thereof; and it was written "
+                "Then were the king's scribes called at that time in the third month, that "
+                "is, the month Sivan, on the three and twentieth day thereof; and it was written "
+                "according to all that Mordecai commanded unto the Jews, and to the "
+                "lieutenants, and the deputies and rulers of the provinces which are from India "
+                "unto Ethiopia, an hundred twenty and seven provinces, unto every province "
+                "according to the writing thereof, and unto every people after their language, "
+                "and to the Jews according to their writing, and according to their language. "
+                "Then were the king's scribes called at that time in the third month, that is, the"
+                " month Sivan, on the three and twentieth day thereof; and it was written "
                 "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
-                "and the deputies and rulers of the provinces which are from India unto "
-                "Ethiopia, an hundred twenty and seven provinces, unto every province according "
-                "to the writing thereof, and unto every people after their language, and to the "
-                "Jews according to their writing, and according to their language. Then were the "
-                "king's scribes called at that time in the third month, that is, "
-                "the month Sivan, on the three and twentieth day thereof; and it was written "
-                "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
-                "and the deputies and rulers of the provinces which are from India unto "
-                "Ethiopia, an hundred twenty and seven provinces, unto every province according "
-                "to the writing thereof, and unto every people after their language, and to the "
-                "Jews according to their writing, and according to their language. "
-                "a dog rose to meet thee upon thine entry.",
+                "and the deputies and rulers of the provinces which are from India unto Ethiopia, "
+                "an hundred twenty and seven provinces, unto every province according to the "
+                "writing thereof, and unto every people after their language, and to the Jews "
+                "according to their writing, and according to their language. a dog rose to meet "
+                "thee upon thine entry.",
                 max_results=100)
         # Did it work?
         self.assertEqual(len(query12), 100)

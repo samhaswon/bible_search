@@ -95,6 +95,8 @@ class TestPerf(unittest.TestCase):
             # Do some searching
             self.bible_search.search("Jesus wept", max_results=100)
         end = time.perf_counter()
+        results = self.bible_search.search("Jesus wept", max_results=100)
+        self.assertLessEqual(len(results), 100)
         avg_time = (end - start) / count
         print("Common case, limit of 100 results")
         print(f"Total: {end - start:.4f}s\n"
@@ -119,7 +121,8 @@ class TestPerf(unittest.TestCase):
         self.bible_search.load('KJV')
         start = time.perf_counter()
         for _ in range(count):
-            # Do some searching
+            # Do some searching.
+            # The query is 180 tokens, 30,818 results.
             self.bible_search.search(
                 "Then were the king's scribes called at that time in the third month, that is, "
                 "the month Sivan, on the three and twentieth day thereof; and it was written "

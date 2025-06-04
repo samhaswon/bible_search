@@ -833,7 +833,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Python list of results
-    PyObject* result_list = PyList_New(result_count);
+    PyObject* result_list = PyList_New(max_results);
 
     for (size_t i = 0; i < max_results; i++) {
         // Translate the reference and add it to the Python list

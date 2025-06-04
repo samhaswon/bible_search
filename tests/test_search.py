@@ -94,7 +94,7 @@ class TestSearch(unittest.TestCase):
                 "a dog rose to meet thee upon thine entry.",
                 max_results=100)
         # Did it work?
-        self.assertGreater(len(query12), 30_000)
+        self.assertEqual(len(query12), 100)
 
     def test_query_edge_cases(self):
         """

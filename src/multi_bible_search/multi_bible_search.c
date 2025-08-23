@@ -623,6 +623,7 @@ triple get_table_index(const char* version) {
                 indices.a = 0;
                 break;
             }
+            break;
 
         // RWV
         case 'W':

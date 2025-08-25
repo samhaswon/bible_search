@@ -117,7 +117,7 @@ class TestPerf(unittest.TestCase):
         """
         Test a couple of worst-case queries.
         """
-        count = 100
+        count = 500
         self.bible_search.load('KJV')
         start = time.perf_counter()
         for _ in range(count):
@@ -142,7 +142,7 @@ class TestPerf(unittest.TestCase):
         end = time.perf_counter()
         avg_time = (end - start) / count
         print(f"Excessively long query total: {end - start:.4f}s\n"
-              f"{avg_time:.8f}s per search average")
+              f"{avg_time:.8f}s per search average ({avg_time * 10 ** 3:.4f}ms)")
         print("-" * 20)
 
         start = time.perf_counter()
@@ -160,7 +160,7 @@ class TestPerf(unittest.TestCase):
         end = time.perf_counter()
         avg_time = (end - start) / count
         print(f"Longest reasonable query total: {end - start:.4f}s\n"
-              f"{avg_time:.8f}s per search average")
+              f"{avg_time:.8f}s per search average ({avg_time * 10 ** 3:.4f}ms)")
         print("-" * 20)
 
     def test_profile(self):

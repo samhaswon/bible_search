@@ -739,19 +739,96 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Make sure we have tokens, then search
-    if (tokens) {
+    if (num_tokens > 20) {
+        int *token_counts = (int *)malloc(num_tokens * sizeof(int));
+        for (int i = 0; i < num_tokens; i++)
+        {
+            // Since tokens is over allocated, we can just stop at the first NULL
+            if (tokens[i] == NULL) {
+                break;
+            }
+            token_counts[i] = 1;
+            for (int j = i + 1; j < num_tokens; j++) {
+                if (tokens[j] != NULL && strcmp(tokens[i], tokens[j]) == 0) {
+                    token_counts[i]++;
+                    free(tokens[j]);
+                    for (int k = j; k < num_tokens - 1; k++) {
+                        tokens[k] = tokens[k + 1];
+                    }
+                    num_tokens--;
+                    tokens[num_tokens] = NULL;
+                }
+            }
+        }
+
         for (int i = 0; i < num_tokens; i++) {
             // Get results for all, adding to the number of total results
-            // English
-            if (table_index.lang == 0) {
-                result_all = get_element(self->ht[ENGLISH_ALL], tokens[i]);
-                token_result_list_len += result_all != NULL ? result_all->length : 0;
+            result_all = get_element(self->ht[table_index.lang], tokens[i]);
+            token_result_list_len += result_all != NULL ? result_all->length : 0;
+
+            // Get results for the particular version, adding to the number of total results
+            result_version = get_element(self->ht[table_index.a], tokens[i]);
+            token_result_list_len += result_version != NULL ? result_version->length : 0;
+
+            // If there is a combined index, search that too
+            if (table_index.b) {
+                result_combined = get_element(self->ht[table_index.b], tokens[i]);
+                token_result_list_len += result_combined != NULL ? result_combined->length : 0;
             }
-            // Spanish
-            else if (table_index.lang == 1) {
-                result_all = get_element(self->ht[SPANISH_ALL], tokens[i]);
-                token_result_list_len += result_all != NULL ? result_all->length : 0;
+
+            // Copy previous token results
+            if (result_count && token_result_list_len > result_count) {
+                token_result_list = realloc(token_result_list, sizeof(result_pair) * token_result_list_len);
+                if (token_result_list == NULL) {
+                    printf("Internal allocation error\n");
+                    return PyList_New(0);
+                }
             }
+            else if (token_result_list_len > 0 && token_result_list == NULL) {
+                // Allocate a temporary list of results
+                token_result_list = malloc(sizeof(result_pair) * token_result_list_len);
+                if (token_result_list == NULL) {
+                    printf("Internal allocation error\n");
+                    return PyList_New(0);
+                }
+            }
+
+            // Add results from all
+            if (result_all != NULL) {
+                // Merge results from all
+                result_count = merge_results_count(token_result_list, result_count, result_all->value, result_all->length, token_counts[i]);
+            }
+
+            // Get results for version:
+            if (result_version != NULL) {
+                // Merge results from this version
+                result_count = merge_results_count(token_result_list, result_count, result_version->value, result_version->length, token_counts[i]);
+            }
+
+            // If applicable, get results from extra index:
+            if (result_combined != NULL) {
+                // Merge any results from the extra index
+                result_count = merge_results_count(token_result_list, result_count, result_combined->value, result_combined->length, token_counts[i]);
+            }
+            token_result_list_len = result_count;
+        }
+        // Free the dynamically allocated tokens
+        for (int i = 0; i < len_tokens; i++)
+        {
+            // Since tokens is over allocated, we can just stop at the first NULL
+            if (tokens[i] == NULL) {
+                break;
+            }
+            free(tokens[i]);
+        }
+        // Free the list of tokens
+        free(tokens);
+    }
+    else if (tokens) {
+        for (int i = 0; i < num_tokens; i++) {
+            // Get results for all, adding to the number of total results
+            result_all = get_element(self->ht[table_index.lang], tokens[i]);
+            token_result_list_len += result_all != NULL ? result_all->length : 0;
 
             // Get results for the particular version, adding to the number of total results
             result_version = get_element(self->ht[table_index.a], tokens[i]);

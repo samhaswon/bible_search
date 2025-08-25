@@ -137,6 +137,78 @@ static inline size_t merge_results(result_pair * restrict dest, size_t dest_len,
     return k;
 }
 
+/*
+ * Merge two (individually sorted) lists together.
+ * Assumes that the size of `dest` is `dest_len + src_len` 
+ */
+static inline size_t merge_results_count(result_pair * restrict dest, size_t dest_len, const long * restrict src, size_t src_len, int count) {
+    // Copy of the old destination array
+    result_pair *old = malloc(dest_len * sizeof(result_pair));
+    if (!old) {
+        printf("Memory allocation failure in merge_results\n");
+        return 0;
+    }
+    memcpy(old, dest, dest_len * sizeof(result_pair));
+
+    size_t i = 0, j = 0, k = 0;
+    
+    // Merge old (with counts) and src into dest
+    while (i < dest_len && j < src_len) {
+        long val_old = old[i].element;
+        long val_src = src[j];
+         
+        if (val_old == val_src) {
+            // Copy old entry, then add src occurrences
+            dest[k] = old[i];
+            // Count how many times src[j] repeats
+            uint_fast16_t extra = 0;
+            while (j < src_len && src[j] == val_src) {
+                extra++;
+                j++;
+            }
+            dest[k].count += extra * count;
+            k++;
+            i++;
+        } 
+        else if (val_old < val_src) {
+            dest[k++] = old[i++];
+        }
+        else {
+            // New element from src
+            long current = val_src;
+            uint_fast16_t cnt = 0;
+            while (j < src_len && src[j] == current) {
+                cnt++;
+                j++;
+            }
+            dest[k].element = current;
+            dest[k].count = cnt * count;
+            k++;
+        }
+    }
+    
+    // Copy remaining old entries
+    while (i < dest_len) {
+        dest[k++] = old[i++];
+    }
+    
+    // Copy remaining src entries
+    while (j < src_len) {
+        long current = src[j];
+        uint_fast16_t cnt = 0;
+        while (j < src_len && src[j] == current) {
+            cnt++;
+            j++;
+        }
+        dest[k].element = current;
+        dest[k].count = cnt;
+        k++;
+    }
+
+    free(old);
+    return k;
+}
+
 // Rank elements in the result `array` by their frequency
 static inline size_t rank(const result_pair * restrict array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
     if (size == 0 || target == 0) {

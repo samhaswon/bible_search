@@ -214,6 +214,34 @@ class TestPerf(unittest.TestCase):
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
         print("-" * 20)
 
+    def test_load_all(self):
+        """
+        Test the average load time of all versions.
+        """
+        count = 5
+        start = time.perf_counter()
+        for _ in range(count):
+            searcher = BibleSearch()
+            searcher.load_all()
+        end = time.perf_counter()
+        avg_time = (end - start) / count
+        print(f"Average full index load time: {avg_time:.2f}s")
+        print("-" * 20)
+
+    def test_load_one(self):
+        """
+        Test the average load time with a single version.
+        """
+        count = 10
+        start = time.perf_counter()
+        for _ in range(count):
+            searcher = BibleSearch()
+            searcher.load("KJV")
+        end = time.perf_counter()
+        avg_time = (end - start) / count
+        print(f"Average single index load time: {avg_time:.2f}s")
+        print("-" * 20)
+
 
 if __name__ == '__main__':
     unittest.main()

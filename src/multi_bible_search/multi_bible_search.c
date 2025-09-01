@@ -739,7 +739,9 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Make sure we have tokens, then search
-    if (num_tokens > 20) {
+    if (num_tokens > 15) {
+        // For sufficiently large inputs (20 for now), find duplicate tokens. 
+        // So instead of merging articles like "the" 20 times, we do it once and multiply by 20.
         int *token_counts = (int *)malloc(num_tokens * sizeof(int));
         for (int i = 0; i < num_tokens; i++)
         {

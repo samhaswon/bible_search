@@ -186,11 +186,13 @@ def make_index(bibles_in: dict) -> dict:
     index = built_index._getvalue()
 
     # Separate some duplicates
-    print("Built primary index. Removing some duplicates across all versions...")
-    english_versions = ['ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR',
-                        'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET',
-                        'NIV 1984', 'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV',
-                        'WEB', 'YLT']
+    print("Built primary index. Removing some duplicates across all English versions...")
+    english_versions = [
+        'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR',
+        'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET',
+        'NIV 1984', 'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV',
+        'WEB', 'YLT'
+    ]
     index = separate_duplicates(index, english_versions, "AllEng")
 
     # Separate duplicates in KJV-Like Bibles

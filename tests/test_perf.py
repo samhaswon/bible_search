@@ -1,5 +1,7 @@
 """
 Test some of the performance aspects of the search module.
+Due to the amount of queries run, this also ends up testing some edge cases.
+It also takes a while, so there's that.
 """
 
 from gc import get_referents
@@ -9,6 +11,8 @@ import time
 import unittest
 
 from src.multi_bible_search.bible_search_adapter import BibleSearch
+
+MAKE_PLOT = True
 
 
 def getsize(obj):
@@ -48,6 +52,7 @@ class TestPerf(unittest.TestCase):
     """
     Test searching performance.
     """
+
     def setUp(self) -> None:
         """
         Create the search object.
@@ -241,6 +246,60 @@ class TestPerf(unittest.TestCase):
         avg_time = (end - start) / count
         print(f"Average single index load time: {avg_time:.2f}s")
         print("-" * 20)
+
+    # pylint: disable=too-many-locals
+    def test_time_per_token(self):
+        """
+        Test the time it takes for successive token counts to query on average.
+        """
+        query_full = (
+            "Then were the king scribes called at that time in the third month, that is, "
+            "the month Sivan, on the three and twentieth day thereof; and it was written "
+            "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
+            "and the deputies and rulers of the provinces which are from India unto "
+            "Ethiopia, an hundred twenty and seven provinces, unto every province according "
+            "to the writing thereof, and unto every people after their language, and to the "
+            "Jews according to their writing, and according to their language."
+        )
+        tokenized = ''.join(x for x in query_full if x.isalpha() or x.isspace()).lower().split(" ")
+        count = 50
+        results = {}
+        # Warmup
+        for _ in range(20):
+            self.bible_search.search("jesus wept", max_results=100)
+        # Test
+        for token_count in range(1, len(tokenized)):
+            query = ' '.join(tokenized[:token_count])
+            start = time.perf_counter()
+            for _ in range(count):
+                # Do some searching
+                self.bible_search.search(
+                    query,
+                    max_results=100)
+            end = time.perf_counter()
+            results[token_count] = (end - start) / count
+        for token_count, time_taken in results.items():
+            print(f"{token_count = }: {time_taken:.6f}")
+        if MAKE_PLOT:
+            # pylint: disable=import-outside-toplevel
+            import matplotlib.pyplot as plt
+            import numpy as np
+            counts = list(results.keys())
+            times = list(results.values())
+
+            coeffs = np.polyfit(counts, times, deg=4)
+            trend = np.polyval(coeffs, counts)
+
+            plt.figure(figsize=(8, 5))
+            plt.plot(counts, times, marker='o')
+            plt.plot(counts, trend, color="red", linestyle="--", label="Trend")
+            plt.xlabel("Token Count")
+            plt.ylabel("Time")
+            plt.title("Token Count vs. Query Time")
+            plt.legend()
+            plt.grid(True)
+            plt.savefig("./times.jpg")
+            # plt.show()
 
 
 if __name__ == '__main__':

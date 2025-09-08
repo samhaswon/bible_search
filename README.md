@@ -1,10 +1,12 @@
-# bible_search
+# multi_bible_search
 
 A Python package for searching multiple versions of the Bible.
 
-This is, in effect, an exhaustive concordance. 
-It provides fast, full-text[^1] search across many Bible translations in Python.
-Find verses instantly, with results ranked by keyword frequency.
+Perform lightning-fast, full-text search across dozens of Bible translations in Python.  
+Results are ranked by keyword frequency and returned in tens of microseconds, thanks to efficient inverted indexes.  
+
+In effect, this functions as an exhaustive concordance, but with the speed and flexibility of code.
+
 
 ## Installation
 
@@ -150,4 +152,3 @@ searcher.search("Jesus wept", version="ESV")
 ```
 to search the ESV.
 
-[^1]: It internally uses an inverted index for search.

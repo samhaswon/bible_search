@@ -6,6 +6,9 @@ import os
 # pylint: disable=import-error
 from setuptools import setup, Extension
 
+
+tune_native = os.getenv("TUNE_NATIVE", "").lower() in {"1", "true", "yes"}
+
 if os.name == "nt":
     # MSVC flags
     flags = [
@@ -16,7 +19,15 @@ if os.name == "nt":
         "/fp:fast",      # Faster floating point ops, since precision is unnecessary for this
     ]
 else:
-    flags = ["-O3"]
+    flags = [
+        "-O3",
+        "-fno-math-errno",
+        "-ffast-math",
+        "-flto",
+    ]
+    if tune_native:
+        print("Running native build")
+        flags.append("-march=native")  # At this point, this has a negligible impact, same as MSVC
 
 setup(
     name='multi_bible_search',

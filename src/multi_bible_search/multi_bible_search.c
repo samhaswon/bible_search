@@ -81,7 +81,7 @@ static inline void ref_to_str_colon(uint_fast16_t num, char* str) {
 }
 
 // Translate numeric references to Python strings
-static inline PyObject* rtranslate(long reference) {
+static inline PyObject* rtranslate(uint32_t reference) {
     // Buffer for up to the longest reference would be 20,
     // but it is bumped up to 24 for the longest invalid reference
     char reference_buffer[24];
@@ -722,7 +722,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
     // Pointers to the C lists of results
     result_pair *token_result_list = NULL;
-    long *token_result_list_longs = NULL;
+    uint32_t *token_result_list_longs = NULL;
 
     size_t result_count = 0,            // Current number of results
            token_result_list_len = 0;   // Allocated length of the result list
@@ -902,7 +902,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Rank the results, storing the length of the deduplicated portion of the array
-    token_result_list_longs = (long*) malloc(result_count * sizeof(long));
+    token_result_list_longs = (uint32_t*) malloc(result_count * sizeof(uint32_t));
     if (token_result_list_longs == NULL) {
         goto token_free;
     }
@@ -1068,7 +1068,7 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
         Py_RETURN_NONE;
     }
     // Accumulator for the number of bytes here
-    unsigned long num_bytes = 0;
+    size_t num_bytes = 0;
     // Loop through each table
     for (int i = 0; i < NUM_TABLES; i++) {
         // If the table is not allocated, just skip that
@@ -1081,7 +1081,7 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
                 // Add the size of the struct itself
                 num_bytes += sizeof(struct element);
                 // Also add the size of the array pointed to by the element
-                num_bytes += self->ht[i]->elements[j]->length * sizeof(long);
+                num_bytes += self->ht[i]->elements[j]->length * sizeof(uint32_t);
             }
         }
         // Add the size of the hash table's array of elements
@@ -1089,7 +1089,7 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
     }
     num_bytes += sizeof(struct hashtable) * NUM_TABLES;
     // The object's struct size is included in the definition of the object, which will be read by Python, so I won't add that here as well
-    return PyLong_FromUnsignedLong(num_bytes);
+    return PyLong_FromSize_t(num_bytes);
 }
 
 // Method definitions

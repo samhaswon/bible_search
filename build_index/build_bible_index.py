@@ -3,12 +3,14 @@ Build the index of the supported Bible versions.
 This takes a while.
 """
 # pylint: disable=import-error,wildcard-import
+import bisect
 import copy
 import bz2
 import multiprocessing
 import re
 import time
 from typing import List
+from multiprocessing.managers import DictProxy
 
 import numpy
 
@@ -66,7 +68,7 @@ def tokenize(input_string: str) -> List[str]:
 
 
 # pylint: disable=too-many-branches,too-many-nested-blocks
-def index_bible(bible, name: str, result) -> None:
+def index_bible(bible, name: str, result: DictProxy) -> None:
     """
     Builds the (reverse) index of a given Bible version.
     :param bible: Bible object used for indexing.
@@ -158,6 +160,55 @@ def separate_duplicates(index: dict, versions: list, combine_to: str) -> dict:
     return index_copy
 
 
+def separate_duplicates_mp(index: DictProxy, versions: list, combine_to: str) -> None:
+    """
+    Separates duplicate references as "<combine_to>".
+    :param combine_to: Name to combine references under.
+    :param index: Full reverse index of passages.
+    :param versions: Version list to work with.
+    :return: Reverse index with duplicate references under "<combine_to>"
+    """
+    # Snapshot for safe iteration and comparisons
+    # convert proxy to plain dict before deepcopy
+    snapshot_iter = {key: copy.deepcopy(value) for key, value in dict(index).items() if key in versions}
+
+    # Since we've already incurred the penalty of iterating the DictProxy,
+    # copy the one we have to be edited. This is for both correctness and speed.
+    # We'll write this back later.
+    snapshot_edit = copy.deepcopy(snapshot_iter)
+
+    # Gather tokens/matches that exist in all versions
+    combined = {}
+    base_version = versions[0]
+    other_versions = versions[1:]
+    base_tokens = snapshot_iter.get(base_version, {})
+
+    for token, matches in base_tokens.items():
+        for match in matches:
+            in_all = True
+            for v in other_versions:
+                lst = snapshot_edit[v].get(token, [])
+                i = bisect.bisect_left(lst, match)
+                if i == len(lst) or lst[i] != match:
+                    in_all = False
+                    break
+            if in_all:
+                combined.setdefault(token, []).append(match)
+                for version in versions:
+                    version_tokens = snapshot_edit.get(version, {})
+                    lst = version_tokens.get(token, [])
+                    idx = bisect.bisect_left(lst, match)
+                    if idx < len(lst) and lst[idx] == match:
+                        lst.pop(idx)
+                        if not lst:
+                            del version_tokens[token]
+
+    # Write combined duplicates under `combine_to`
+    index[combine_to] = combined
+    for version in versions:
+        index[version] = snapshot_edit[version]
+
+
 # pylint: disable=too-many-locals,consider-using-with
 def make_index(bibles_in: dict) -> dict:
     """
@@ -167,7 +218,7 @@ def make_index(bibles_in: dict) -> dict:
     """
 
     # Initialization
-    num_processes = multiprocessing.cpu_count() - 1
+    num_processes = multiprocessing.cpu_count()
     manager = multiprocessing.Manager()
     built_index = manager.dict({})
     versions = list(bibles_in.keys())
@@ -183,52 +234,56 @@ def make_index(bibles_in: dict) -> dict:
 
     # Dereference the dictionary to a normal one per the documentation
     # pylint: disable=no-member,protected-access
-    index = built_index._getvalue()
+    # index = built_index._getvalue()
 
+    pool = multiprocessing.Pool(processes=num_processes)
     # Separate some duplicates
-    print("Built primary index. Removing some duplicates across all English versions...")
+    print("Built primary index. Removing some duplicates across all versions of each language...")
     english_versions = [
         'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR',
         'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET',
         'NIV 1984', 'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV',
         'WEB', 'YLT'
     ]
-    index = separate_duplicates(index, english_versions, "AllEng")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, english_versions, "AllEng",))
+
+    spanish_versions = ["BTX3", "RV1960", "RV2004"]
+    pool.apply_async(separate_duplicates_mp, args=(built_index, spanish_versions, "AllEs",))
+
+    # Start, do the work, and wait for results
+    pool.close()
+    pool.join()
+
+    pool = multiprocessing.Pool(processes=num_processes)
+    print("Built combined language indices. Building inter-version indices...")
 
     # Separate duplicates in KJV-Like Bibles
-    print("Built secondary index. Removing some duplicates across KJV-like versions...")
     kjv_like = ["AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"]
-    index = separate_duplicates(index, kjv_like, "KJV-like")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, kjv_like, "KJV-like",))
 
-    print("Built tertiary index. Removing some duplicates from the two NIV versions...")
     both_niv = ["NIV 1984", "NIV 2011"]
-    index = separate_duplicates(index, both_niv, "NIV")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, both_niv, "NIV",))
 
-    print("Built quaternary index. Removing some duplicates in Literal translations...")
     literal = ["ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"]
-    index = separate_duplicates(index, literal, "Literal")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, literal, "Literal",))
 
-    print("Built quinary index. Removing some duplicates in Dynamic translations...")
     dynamic = ["CSB", "NLT", "NET"]
-    index = separate_duplicates(index, dynamic, "Dynamic")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, dynamic, "Dynamic",))
 
-    print("Build senary index. Removing some duplicates in more Literal translations...")
     literal2 = ["BSB", "LSV", "YLT"]
-    index = separate_duplicates(index, literal2, "Literal2")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, literal2, "Literal2",))
 
-    print("Built septenary index. Removing duplicates in all Spanish indexes...")
-    spanish_versions = ["BTX3", "RV1960", "RV2004"]
-    index = separate_duplicates(index, spanish_versions, "AllEs")
-
-    print("Built octonary index. Removing duplicates in Reina Valera translations...")
     rv_versions = ["RV1960", "RV2004"]
-    index = separate_duplicates(index, rv_versions, "EsRV")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, rv_versions, "EsRV",))
 
-    print("Built nonary index. Removing duplicates from some assorted English versions...")
     extra_eng = ["Darby", "EBR"]
-    index = separate_duplicates(index, extra_eng, "ExtraEng")
+    pool.apply_async(separate_duplicates_mp, args=(built_index, extra_eng, "ExtraEng",))
 
-    return index
+    # Start, do the work, and wait for results
+    pool.close()
+    pool.join()
+
+    return built_index._getvalue()
 
 
 def save(data: dict, index_name: str) -> None:
@@ -244,7 +299,7 @@ def save(data: dict, index_name: str) -> None:
             data_file.write(encode_json(data).encode('utf-8'))
     # Testing save
     except FileNotFoundError:
-        with bz2.open(f"./data/{index_name}.json.pbz2", "wb") as data_file:
+        with bz2.open(f"./src/data/{index_name}.json.pbz2", "wb") as data_file:
             data_file.write(encode_json(data).encode('utf-8'))
 
 

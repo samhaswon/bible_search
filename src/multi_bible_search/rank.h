@@ -8,12 +8,12 @@
 #include "memcpy_long.h"
 
 typedef struct result_pair {
-    long element;
+    uint32_t element;
     uint_fast16_t count; 
 } result_pair;
 
 // Counting sort function for result_pair array
-static inline void countingSort(const result_pair * restrict arr, int n, long* destination, const uint_fast16_t max) {
+static inline void countingSort(const result_pair * restrict arr, int n, uint32_t* destination, const uint_fast16_t max) {
     // Stack-based for most cases, the path branch prediction should take
     if (max <= 180) {
         // On‐stack count array
@@ -69,7 +69,7 @@ static inline void countingSort(const result_pair * restrict arr, int n, long* d
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
  */
-static inline size_t merge_results(result_pair * restrict dest, size_t dest_len, const long * restrict src, size_t src_len) {
+static inline size_t merge_results(result_pair * restrict dest, size_t dest_len, const uint32_t * restrict src, size_t src_len) {
     // Copy of the old destination array
     result_pair *old = malloc(dest_len * sizeof(result_pair));
     if (!old) {
@@ -82,8 +82,8 @@ static inline size_t merge_results(result_pair * restrict dest, size_t dest_len,
     
     // Merge old (with counts) and src into dest
     while (i < dest_len && j < src_len) {
-        long val_old = old[i].element;
-        long val_src = src[j];
+        uint32_t val_old = old[i].element;
+        uint32_t val_src = src[j];
          
         if (val_old == val_src) {
             // Copy old entry, then add src occurrences
@@ -103,7 +103,7 @@ static inline size_t merge_results(result_pair * restrict dest, size_t dest_len,
         }
         else {
             // New element from src
-            long current = val_src;
+            uint32_t current = val_src;
             uint_fast16_t cnt = 0;
             while (j < src_len && src[j] == current) {
                 cnt++;
@@ -122,7 +122,7 @@ static inline size_t merge_results(result_pair * restrict dest, size_t dest_len,
     
     // Copy remaining src entries
     while (j < src_len) {
-        long current = src[j];
+        uint32_t current = src[j];
         uint_fast16_t cnt = 0;
         while (j < src_len && src[j] == current) {
             cnt++;
@@ -141,7 +141,7 @@ static inline size_t merge_results(result_pair * restrict dest, size_t dest_len,
  * Merge two (individually sorted) lists together.
  * Assumes that the size of `dest` is `dest_len + src_len` 
  */
-static inline size_t merge_results_count(result_pair * restrict dest, size_t dest_len, const long * restrict src, size_t src_len, int count) {
+static inline size_t merge_results_count(result_pair * restrict dest, size_t dest_len, const uint32_t * restrict src, size_t src_len, int count) {
     // Copy of the old destination array
     result_pair *old = malloc(dest_len * sizeof(result_pair));
     if (!old) {
@@ -154,8 +154,8 @@ static inline size_t merge_results_count(result_pair * restrict dest, size_t des
     
     // Merge old (with counts) and src into dest
     while (i < dest_len && j < src_len) {
-        long val_old = old[i].element;
-        long val_src = src[j];
+        uint32_t val_old = old[i].element;
+        uint32_t val_src = src[j];
          
         if (val_old == val_src) {
             // Copy old entry, then add src occurrences
@@ -175,7 +175,7 @@ static inline size_t merge_results_count(result_pair * restrict dest, size_t des
         }
         else {
             // New element from src
-            long current = val_src;
+            uint32_t current = val_src;
             uint_fast16_t cnt = 0;
             while (j < src_len && src[j] == current) {
                 cnt++;
@@ -194,7 +194,7 @@ static inline size_t merge_results_count(result_pair * restrict dest, size_t des
     
     // Copy remaining src entries
     while (j < src_len) {
-        long current = src[j];
+        uint32_t current = src[j];
         uint_fast16_t cnt = 0;
         while (j < src_len && src[j] == current) {
             cnt++;
@@ -210,7 +210,7 @@ static inline size_t merge_results_count(result_pair * restrict dest, size_t des
 }
 
 // Rank elements in the result `array` by their frequency
-static inline size_t rank(const result_pair * restrict array, size_t size, int target, Py_ssize_t max_results, long* token_target) {
+static inline size_t rank(const result_pair * restrict array, size_t size, int target, Py_ssize_t max_results, uint32_t* token_target) {
     if (size == 0 || target == 0) {
         return 0;
     }

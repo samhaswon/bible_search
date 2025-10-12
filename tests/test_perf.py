@@ -178,7 +178,7 @@ class TestPerf(unittest.TestCase):
         self.bible_search.load_all()
         new_all_size = \
             (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
-        dir_size = get_directory_size("../src/multi_bible_search/data") / (1024 ** 2)
+        dir_size = get_directory_size("./src/multi_bible_search/data") / (1024 ** 2)
         print(f"KJV Only: {new_kjv_size:7.4f} MiB")
         print(f"All:      {new_all_size:7.4f} MiB")
         print(f"Disk:     {dir_size:7.4f} MiB")
@@ -190,7 +190,7 @@ class TestPerf(unittest.TestCase):
         Test the average retrieval speed of single keys.
         """
         count = 200
-        with open("kjv_keys.txt", "r", encoding="utf-8") as key_file:
+        with open("./tests/kjv_keys.txt", "r", encoding="utf-8") as key_file:
             keys = key_file.read().splitlines()
         self.bible_search.load('KJV')
         # warmup
@@ -298,7 +298,7 @@ class TestPerf(unittest.TestCase):
             plt.title("Token Count vs. Query Time")
             plt.legend()
             plt.grid(True)
-            plt.savefig("./times.jpg")
+            plt.savefig("./tests/times.jpg")
             # plt.show()
 
 

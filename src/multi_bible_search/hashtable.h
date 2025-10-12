@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 // How much to increase the size of the hash table by each time
 #define INCREMENT_SIZE 100
@@ -15,7 +16,7 @@
 struct element
 {
     char key[20];
-    long* value;
+    uint32_t* value;
     int length;
 };
 
@@ -23,20 +24,20 @@ struct element
 struct hashtable
 {
     struct element** elements;
-    int size;
-    int num_elements;
+    size_t size;
+    size_t num_elements;
 };
 
 // Calculate the hash of a string based on the size of the hash table
-static inline int hash(const char* key, const int size) {
+static inline size_t hash(const char* key, const size_t size) {
     size_t length = strlen(key);
-    unsigned long result = key[0] << 7;
+    uint32_t result = (uint32_t)(key[0] << 7);
     for (size_t i = 0; i < length; i++) {
-        result = (1003 * result) ^ key[i];
+        result = (uint32_t)((1003u * result) ^ (uint8_t)key[i]);
     }
     result += result >> 1;
     result ^= ~length;
-    return result % size;
+    return (size_t)(result % size);
 }
 
 // Allocate space for a new or larger hash table
@@ -50,8 +51,8 @@ static inline void allocate_table(struct hashtable* ht) {
         return;
     }
     else {
-        int new_size = ht->size + INCREMENT_SIZE,   // The size of the new hash table
-            new_hash, i, j;
+        size_t new_size = ht->size + INCREMENT_SIZE;   // The size of the new hash table
+        size_t new_hash, i, j;
 
         // Make a new array of elements and store the pointer to the old one
         struct element **new_elements = (struct element**) calloc(new_size, sizeof(struct element *));
@@ -88,7 +89,7 @@ void delete_table(struct hashtable* ht) {
     }
 
     // Otherwise, delete everything
-    for (int i = 0; i < ht->size; i++) {
+    for (size_t i = 0; i < ht->size; i++) {
         // Can't free NULL
         if (ht->elements[i] != NULL) {
             free(ht->elements[i]->value);
@@ -109,7 +110,7 @@ void add_element(struct hashtable* ht, struct element* e) {
     }
     
     // Hash the element and see if we can just put it in the first spot
-    int element_hash = hash(e->key, ht->size);
+    size_t element_hash = hash(e->key, ht->size);
     if (ht->elements[element_hash] == NULL) {
         ht->elements[element_hash] = e;
         ht->num_elements++;
@@ -124,7 +125,7 @@ void add_element(struct hashtable* ht, struct element* e) {
         ht->elements[element_hash] = e;
     }
     // Since there was a collision, perform a linear search to find the next open spot
-    int j = element_hash;
+    size_t j = element_hash;
     while (ht->elements[j] != NULL)
     {
         j++;
@@ -139,7 +140,7 @@ void add_element(struct hashtable* ht, struct element* e) {
 
 // Get an element of the hash table
 static inline struct element* get_element(const struct hashtable* ht, const char * key) {
-    int j = hash(key, ht->size);
+    size_t j = hash(key, ht->size);
     // Search for the element. If the element does not exist, that is fine
     while (ht->elements[j] != NULL && strcmp(ht->elements[j]->key, key)) {
         j++;

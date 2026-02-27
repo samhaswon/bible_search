@@ -18,12 +18,12 @@ with open("version_keys.txt", "r", encoding="utf-8") as token_file:
 unique_tokens = []
 
 for token in tokens:
-    UNIQUE = 0
+    unique = 0
     for version in searcher.versions:
         result = searcher.search(token, version)
         if len(result):
-            UNIQUE += 1
-    if UNIQUE < 2:
+            unique += 1
+    if unique < 2:
         unique_tokens.append(token)
 
 if len(unique_tokens) == 0:

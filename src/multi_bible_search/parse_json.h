@@ -60,15 +60,15 @@ static inline void parse_json(const char *json, struct hashtable *ht) {
         char *num_start = array_start,  // Starting index of the string for the number
              *num_end;                  // Ending index of the string for the number
         size_t array_size = 0;          // Size/index of the array of references
-        long *values = NULL,            // Array of values from the JSON data
-              value;                    // Parsed value
+        uint32_t *values = NULL,        // Array of values from the JSON data
+                 value;                 // Parsed value
 
         // Allocate the array of values based on the number of ',' separators + 1
-        values = (long *) malloc((char_count(array_start, ',', array_end - array_start) + 1) * sizeof(long));
+        values = (uint32_t *) malloc((char_count(array_start, ',', array_end - array_start) + 1) * sizeof(uint32_t));
 
         while (num_start < array_end) {
-            // Convert the string to a long and add it to the array
-            value = strtol(num_start, &num_end, REF_NUM_BASE);
+            // Convert the string to an unsigned long and add it to the array
+            value = (uint32_t)strtoul(num_start, &num_end, REF_NUM_BASE);
             values[array_size++] = value;
 
             // since num_end is the index in the string just after the number (a ','), add 1 to it and use that as our start

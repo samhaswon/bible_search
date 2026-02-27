@@ -7,16 +7,31 @@ import os
 from setuptools import setup, Extension
 
 
+tune_native = os.getenv("TUNE_NATIVE", "").lower() in {"1", "true", "yes"}
+
 if os.name == "nt":
     # MSVC flags
-    flags = ["/favor:blend",  # Optimize for AMD and Intel
-             "/GF",  # (Eliminate Duplicate Strings)
-             "/Qpar",  # (Auto-parallelizer)
-             "/arch:AVX2",  # At this point, this has a negligible impact
-             "/fp:fast"  # Faster floating point ops, since precision is unnecessary for this
-             ]
+    flags = [
+        "/favor:blend",  # Optimize for AMD and Intel
+        "/GF",           # (Eliminate Duplicate Strings)
+        "/Qpar",         # (Auto-parallelizer)
+        "/arch:AVX2",    # At this point, this has a negligible impact
+        "/fp:fast",      # Faster floating point ops, since precision is unnecessary for this
+    ]
 else:
-    flags = ["-O3"]
+    flags = [
+        "-O3",
+        "-fno-math-errno",
+        "-ffast-math",
+        "-flto",
+        # Debug flags:
+        # "-fno-omit-frame-pointer",
+        # "-O0",
+        # "-g",
+    ]
+    if tune_native:
+        print("Running native build")
+        flags.append("-march=native")  # At this point, this has a negligible impact, same as MSVC
 
 setup(
     name='multi_bible_search',

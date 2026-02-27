@@ -9,7 +9,7 @@
 // Tell MSVC it's fine
 #pragma warning(disable : 4996)
 
-#define NUM_TABLES 40
+#define NUM_TABLES 42
 
 // Combined indices
 #define ENGLISH_ALL 0
@@ -18,12 +18,13 @@
 #define NIV 3
 #define LITERAL 4
 #define LITERAL2 5
-#define DYNAMIC 6
-#define ES_RV 7
-#define EXTRA_ENG 8
+#define LITERAL3 6
+#define DYNAMIC 7
+#define ES_RV 8
+#define EXTRA_ENG 9
 
 // This should be the same as the highest combined index's index
-#define COMBINED_INDEX_OFFSET 8
+#define COMBINED_INDEX_OFFSET 9
 
 // This is an ever so slight, single use optimization over itoa
 static inline void ref_to_str(uint_fast16_t num, char* str) {
@@ -81,7 +82,7 @@ static inline void ref_to_str_colon(uint_fast16_t num, char* str) {
 }
 
 // Translate numeric references to Python strings
-static inline PyObject* rtranslate(long reference) {
+static inline PyObject* rtranslate(uint32_t reference) {
     // Buffer for up to the longest reference would be 20,
     // but it is bumped up to 24 for the longest invalid reference
     char reference_buffer[24];
@@ -400,9 +401,10 @@ triple get_table_index(const char* version) {
     // NIV is 3
     // Literal is 4
     // Literal2 is 5
-    // Dynamic is 6
-    // Spanish Reina Valera is 7
-    // Extra English is 8
+    // Literal3 is 6
+    // Dynamic is 7
+    // Spanish Reina Valera is 8
+    // Extra English is 9
     triple indices;
     indices.lang = ENGLISH_ALL;
     indices.b = 0;
@@ -496,7 +498,7 @@ triple get_table_index(const char* version) {
         // ESV
         case 'S':
             indices.a = COMBINED_INDEX_OFFSET + 12;
-            indices.b = LITERAL;
+            indices.b = LITERAL3;
             break;
 
         default:
@@ -530,15 +532,27 @@ triple get_table_index(const char* version) {
         }
         break;
 
-    // LSV
     case 'L':
-        indices.a = COMBINED_INDEX_OFFSET + 16;
-        indices.b = LITERAL2;
-        break;
+        switch (version[2])
+        {
+        // LSB
+        case 'B':
+            indices.a = COMBINED_INDEX_OFFSET + 16;
+            indices.b = LITERAL3;
+            break;
+        // LSV
+        case 'V':
+            indices.a = COMBINED_INDEX_OFFSET + 17;
+            indices.b = LITERAL2;
+            break;
+        default:
+            indices.a = 0;
+            break;
+        }
 
     // MSG
     case 'M':
-        indices.a = COMBINED_INDEX_OFFSET + 17;
+        indices.a = COMBINED_INDEX_OFFSET + 18;
         break;
 
     case 'N':
@@ -546,13 +560,13 @@ triple get_table_index(const char* version) {
         {
         // NASB 1995
         case 'A':
-            indices.a = COMBINED_INDEX_OFFSET + 18;
-            indices.b = LITERAL;
+            indices.a = COMBINED_INDEX_OFFSET + 19;
+            indices.b = LITERAL3;
             break;
 
         // NET
         case 'E':
-            indices.a = COMBINED_INDEX_OFFSET + 19;
+            indices.a = COMBINED_INDEX_OFFSET + 20;
             indices.b = DYNAMIC;
             break;
 
@@ -560,24 +574,24 @@ triple get_table_index(const char* version) {
         case 'I':
             // NIV 1984
             if (version[4] == '1') {
-                indices.a = COMBINED_INDEX_OFFSET + 20;
+                indices.a = COMBINED_INDEX_OFFSET + 21;
             }
             // NIV 2011
             else {
-                indices.a = COMBINED_INDEX_OFFSET + 21;
+                indices.a = COMBINED_INDEX_OFFSET + 22;
             }
             indices.b = NIV;
             break;
 
         // NKJV
         case 'K':
-            indices.a = COMBINED_INDEX_OFFSET + 22;
+            indices.a = COMBINED_INDEX_OFFSET + 23;
             indices.b = LITERAL;
             break;
 
         // NLT
         case 'L':
-            indices.a = COMBINED_INDEX_OFFSET + 23;
+            indices.a = COMBINED_INDEX_OFFSET + 24;
             indices.b = DYNAMIC;
             break;
 
@@ -592,14 +606,14 @@ triple get_table_index(const char* version) {
         {
         // RNKJV
         case 'N':
-            indices.a = COMBINED_INDEX_OFFSET + 24;
+            indices.a = COMBINED_INDEX_OFFSET + 25;
             indices.b = KJV_LIKE;
             break;
 
         // RSV
         case 'S':
-            indices.a = COMBINED_INDEX_OFFSET + 25;
-            indices.b = LITERAL;
+            indices.a = COMBINED_INDEX_OFFSET + 26;
+            indices.b = LITERAL3;
             break;
 
         case 'V':
@@ -607,14 +621,14 @@ triple get_table_index(const char* version) {
             {
             // RV1960
             case '1':
-                indices.a = COMBINED_INDEX_OFFSET + 26;
+                indices.a = COMBINED_INDEX_OFFSET + 27;
                 indices.b = ES_RV;
                 indices.lang = SPANISH_ALL;
                 break;
             
             // RV2004
             case '2':
-                indices.a = COMBINED_INDEX_OFFSET + 27;
+                indices.a = COMBINED_INDEX_OFFSET + 28;
                 indices.b = ES_RV;
                 indices.lang = SPANISH_ALL;
                 break;
@@ -627,7 +641,7 @@ triple get_table_index(const char* version) {
 
         // RWV
         case 'W':
-            indices.a = COMBINED_INDEX_OFFSET + 28;
+            indices.a = COMBINED_INDEX_OFFSET + 29;
             indices.b = LITERAL;
             break;
 
@@ -639,19 +653,19 @@ triple get_table_index(const char* version) {
 
     // UKJV
     case 'U':
-        indices.a = COMBINED_INDEX_OFFSET + 29;
+        indices.a = COMBINED_INDEX_OFFSET + 30;
         indices.b = KJV_LIKE;
         break;
 
     // WEB
     case 'W':
-        indices.a = COMBINED_INDEX_OFFSET + 30;
+        indices.a = COMBINED_INDEX_OFFSET + 31;
         indices.b = LITERAL;
         break;
 
     // YLT
     case 'Y':
-        indices.a = COMBINED_INDEX_OFFSET + 31;
+        indices.a = COMBINED_INDEX_OFFSET + 32;
         indices.b = LITERAL2;
         break;
 
@@ -722,7 +736,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
 
     // Pointers to the C lists of results
     result_pair *token_result_list = NULL;
-    long *token_result_list_longs = NULL;
+    uint32_t *token_result_list_longs = NULL;
 
     size_t result_count = 0,            // Current number of results
            token_result_list_len = 0;   // Allocated length of the result list
@@ -739,19 +753,98 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Make sure we have tokens, then search
-    if (tokens) {
+    if (num_tokens > 15) {
+        // For sufficiently large inputs (15 for now), find duplicate tokens. 
+        // So instead of merging articles like "the" 20 times, we do it once and multiply by 20.
+        int *token_counts = (int *)malloc(num_tokens * sizeof(int));
+        for (int i = 0; i < num_tokens; i++)
+        {
+            // Since tokens is over allocated, we can just stop at the first NULL
+            if (tokens[i] == NULL) {
+                break;
+            }
+            token_counts[i] = 1;
+            for (int j = i + 1; j < num_tokens; j++) {
+                if (tokens[j] != NULL && strcmp(tokens[i], tokens[j]) == 0) {
+                    token_counts[i]++;
+                    free(tokens[j]);
+                    for (int k = j; k < num_tokens - 1; k++) {
+                        tokens[k] = tokens[k + 1];
+                    }
+                    num_tokens--;
+                    tokens[num_tokens] = NULL;
+                }
+            }
+        }
+
         for (int i = 0; i < num_tokens; i++) {
             // Get results for all, adding to the number of total results
-            // English
-            if (table_index.lang == 0) {
-                result_all = get_element(self->ht[ENGLISH_ALL], tokens[i]);
-                token_result_list_len += result_all != NULL ? result_all->length : 0;
+            result_all = get_element(self->ht[table_index.lang], tokens[i]);
+            token_result_list_len += result_all != NULL ? result_all->length : 0;
+
+            // Get results for the particular version, adding to the number of total results
+            result_version = get_element(self->ht[table_index.a], tokens[i]);
+            token_result_list_len += result_version != NULL ? result_version->length : 0;
+
+            // If there is a combined index, search that too
+            if (table_index.b) {
+                result_combined = get_element(self->ht[table_index.b], tokens[i]);
+                token_result_list_len += result_combined != NULL ? result_combined->length : 0;
             }
-            // Spanish
-            else if (table_index.lang == 1) {
-                result_all = get_element(self->ht[SPANISH_ALL], tokens[i]);
-                token_result_list_len += result_all != NULL ? result_all->length : 0;
+
+            // Copy previous token results
+            if (result_count && token_result_list_len > result_count) {
+                token_result_list = realloc(token_result_list, sizeof(result_pair) * token_result_list_len);
+                if (token_result_list == NULL) {
+                    printf("Internal allocation error\n");
+                    return PyList_New(0);
+                }
             }
+            else if (token_result_list_len > 0 && token_result_list == NULL) {
+                // Allocate a temporary list of results
+                token_result_list = malloc(sizeof(result_pair) * token_result_list_len);
+                if (token_result_list == NULL) {
+                    printf("Internal allocation error\n");
+                    return PyList_New(0);
+                }
+            }
+
+            // Add results from all
+            if (result_all != NULL) {
+                // Merge results from all
+                result_count = merge_results_count(token_result_list, result_count, result_all->value, result_all->length, token_counts[i]);
+            }
+
+            // Get results for version:
+            if (result_version != NULL) {
+                // Merge results from this version
+                result_count = merge_results_count(token_result_list, result_count, result_version->value, result_version->length, token_counts[i]);
+            }
+
+            // If applicable, get results from extra index:
+            if (result_combined != NULL) {
+                // Merge any results from the extra index
+                result_count = merge_results_count(token_result_list, result_count, result_combined->value, result_combined->length, token_counts[i]);
+            }
+            token_result_list_len = result_count;
+        }
+        // Free the dynamically allocated tokens
+        for (int i = 0; i < len_tokens; i++)
+        {
+            // Since tokens is over allocated, we can just stop at the first NULL
+            if (tokens[i] == NULL) {
+                break;
+            }
+            free(tokens[i]);
+        }
+        // Free the list of tokens
+        free(tokens);
+    }
+    else if (tokens) {
+        for (int i = 0; i < num_tokens; i++) {
+            // Get results for all, adding to the number of total results
+            result_all = get_element(self->ht[table_index.lang], tokens[i]);
+            token_result_list_len += result_all != NULL ? result_all->length : 0;
 
             // Get results for the particular version, adding to the number of total results
             result_version = get_element(self->ht[table_index.a], tokens[i]);
@@ -823,7 +916,7 @@ PyObject *SearchObject_search(SearchObject *self, PyObject *args) {
     }
 
     // Rank the results, storing the length of the deduplicated portion of the array
-    token_result_list_longs = (long*) malloc(result_count * sizeof(long));
+    token_result_list_longs = (uint32_t*) malloc(result_count * sizeof(uint32_t));
     if (token_result_list_longs == NULL) {
         goto token_free;
     }
@@ -896,6 +989,9 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     }
     else if (!strcmp(version, "Literal2")) {
         table_index = LITERAL2;
+    }
+    else if (!strcmp(version, "Literal3")) {
+        table_index = LITERAL3;
     }
     else if (!strcmp(version, "Dynamic")) {
         table_index = DYNAMIC;
@@ -989,7 +1085,7 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
         Py_RETURN_NONE;
     }
     // Accumulator for the number of bytes here
-    unsigned long num_bytes = 0;
+    size_t num_bytes = 0;
     // Loop through each table
     for (int i = 0; i < NUM_TABLES; i++) {
         // If the table is not allocated, just skip that
@@ -1002,7 +1098,7 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
                 // Add the size of the struct itself
                 num_bytes += sizeof(struct element);
                 // Also add the size of the array pointed to by the element
-                num_bytes += self->ht[i]->elements[j]->length * sizeof(long);
+                num_bytes += self->ht[i]->elements[j]->length * sizeof(uint32_t);
             }
         }
         // Add the size of the hash table's array of elements
@@ -1010,7 +1106,7 @@ PyObject *SearchObject_index_size(SearchObject *self, PyObject *args) {
     }
     num_bytes += sizeof(struct hashtable) * NUM_TABLES;
     // The object's struct size is included in the definition of the object, which will be read by Python, so I won't add that here as well
-    return PyLong_FromUnsignedLong(num_bytes);
+    return PyLong_FromSize_t(num_bytes);
 }
 
 // Method definitions

@@ -1,1 +1,5 @@
 numpy
+matplotlib
+multipledispatch
+requests
+bs4

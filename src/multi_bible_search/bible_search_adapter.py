@@ -41,17 +41,19 @@ class BibleSearch:
         # Common sets
         self.__dynamic: set = {"CSB", "NLT", "NET"}
         self.__kjv_like: set = {"AKJV", "GNV", "KJV", "KJV 1611", "RNKJV", "UKJV"}
-        self.__literal: set = {"ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"}
+        self.__literal: set = {"ACV", "AMP", "ASV", "NKJV", "RWV", "WEB"}
         self.__literal2: set = {"BSB", "LSV", "YLT"}
+        self.__literal3: set = {"ESV", "LSB", "NASB 1995", "RSV"}
         self.__niv: set = {"NIV 1984", "NIV 2011"}
         self.__esrv: set = {'RV1960', 'RV2004'}
         self.__extra_english: set = {"Darby", "EBR"}
 
         # Language sets
-        self.__english_versions: set = {'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby',
-                                        'DRA', 'EBR', 'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV',
-                                        'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011', 'NKJV',
-                                        'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'}
+        self.__english_versions: set = {
+            'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR', 'ESV', 'GNV',
+            'KJV', 'KJV 1611', 'LSB', 'LSV', 'MSG', 'NASB 1995', 'NET', 'NIV 1984', 'NIV 2011',
+            'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV', 'WEB', 'YLT'
+        }
         self.__spanish_versions: set = {'BTX3', 'RV1960', 'RV2004'}
 
         # Every supported version
@@ -120,6 +122,11 @@ class BibleSearch:
         elif version in self.__literal2 and "Literal2" not in self.__preloaded:
             self._load_version("Literal2", preload=True)
             self.__preloaded.add("Literal2")
+
+        # Load Literal3 common index if applicable
+        elif version in self.__literal3 and "Literal3" not in self.__preloaded:
+            self._load_version("Literal3", preload=True)
+            self.__preloaded.add("Literal3")
 
         # Load Dynamic common index if applicable
         elif version in self.__dynamic and "Dynamic" not in self.__preloaded:

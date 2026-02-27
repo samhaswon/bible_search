@@ -1,5 +1,7 @@
 """
 Test some of the performance aspects of the search module.
+Due to the amount of queries run, this also ends up testing some edge cases.
+It also takes a while, so there's that.
 """
 
 from gc import get_referents
@@ -9,6 +11,8 @@ import time
 import unittest
 
 from src.multi_bible_search.bible_search_adapter import BibleSearch
+
+MAKE_PLOT = True
 
 
 def getsize(obj):
@@ -48,6 +52,7 @@ class TestPerf(unittest.TestCase):
     """
     Test searching performance.
     """
+
     def setUp(self) -> None:
         """
         Create the search object.
@@ -117,7 +122,7 @@ class TestPerf(unittest.TestCase):
         """
         Test a couple of worst-case queries.
         """
-        count = 100
+        count = 500
         self.bible_search.load('KJV')
         start = time.perf_counter()
         for _ in range(count):
@@ -142,7 +147,7 @@ class TestPerf(unittest.TestCase):
         end = time.perf_counter()
         avg_time = (end - start) / count
         print(f"Excessively long query total: {end - start:.4f}s\n"
-              f"{avg_time:.8f}s per search average")
+              f"{avg_time:.8f}s per search average ({avg_time * 10 ** 3:.4f}ms)")
         print("-" * 20)
 
         start = time.perf_counter()
@@ -160,7 +165,7 @@ class TestPerf(unittest.TestCase):
         end = time.perf_counter()
         avg_time = (end - start) / count
         print(f"Longest reasonable query total: {end - start:.4f}s\n"
-              f"{avg_time:.8f}s per search average")
+              f"{avg_time:.8f}s per search average ({avg_time * 10 ** 3:.4f}ms)")
         print("-" * 20)
 
     def test_profile(self):
@@ -173,7 +178,10 @@ class TestPerf(unittest.TestCase):
         self.bible_search.load_all()
         new_all_size = \
             (self.bible_search.internal_index_size() + getsize(self.bible_search)) / (1024 ** 2)
-        dir_size = get_directory_size("../src/multi_bible_search/data") / (1024 ** 2)
+        if os.path.isdir("./src/multi_bible_search/data"):
+            dir_size = get_directory_size("./src/multi_bible_search/data") / (1024 ** 2)
+        else:
+            dir_size = get_directory_size("./src/multi_bible_search/data") / (1024 ** 2)
         print(f"KJV Only: {new_kjv_size:7.4f} MiB")
         print(f"All:      {new_all_size:7.4f} MiB")
         print(f"Disk:     {dir_size:7.4f} MiB")
@@ -185,8 +193,12 @@ class TestPerf(unittest.TestCase):
         Test the average retrieval speed of single keys.
         """
         count = 200
-        with open("kjv_keys.txt", "r", encoding="utf-8") as key_file:
-            keys = key_file.read().splitlines()
+        try:
+            with open("./tests/kjv_keys.txt", "r", encoding="utf-8") as key_file:
+                keys = key_file.read().splitlines()
+        except FileNotFoundError:
+            with open("../tests/kjv_keys.txt", "r", encoding="utf-8") as key_file:
+                keys = key_file.read().splitlines()
         self.bible_search.load('KJV')
         # warmup
         for _ in range(200):
@@ -213,6 +225,91 @@ class TestPerf(unittest.TestCase):
         print(f"Total: {time_accumulator:.4f}s\n"
               f"{avg_time:.8f}s per search average ({avg_time * 10 ** 6:.4f}μs)")
         print("-" * 20)
+
+    def test_load_all(self):
+        """
+        Test the average load time of all versions.
+        """
+        count = 5
+        start = time.perf_counter()
+        for _ in range(count):
+            searcher = BibleSearch()
+            searcher.load_all()
+        end = time.perf_counter()
+        avg_time = (end - start) / count
+        print(f"Average full index load time: {avg_time:.2f}s")
+        print("-" * 20)
+
+    def test_load_one(self):
+        """
+        Test the average load time with a single version.
+        """
+        count = 10
+        start = time.perf_counter()
+        for _ in range(count):
+            searcher = BibleSearch()
+            searcher.load("KJV")
+        end = time.perf_counter()
+        avg_time = (end - start) / count
+        print(f"Average single index load time: {avg_time:.2f}s")
+        print("-" * 20)
+
+    # pylint: disable=too-many-locals
+    def test_time_per_token(self):
+        """
+        Test the time it takes for successive token counts to query on average.
+        """
+        query_full = (
+            "Then were the king scribes called at that time in the third month, that is, "
+            "the month Sivan, on the three and twentieth day thereof; and it was written "
+            "according to all that Mordecai commanded unto the Jews, and to the lieutenants, "
+            "and the deputies and rulers of the provinces which are from India unto "
+            "Ethiopia, an hundred twenty and seven provinces, unto every province according "
+            "to the writing thereof, and unto every people after their language, and to the "
+            "Jews according to their writing, and according to their language."
+        )
+        tokenized = ''.join(x for x in query_full if x.isalpha() or x.isspace()).lower().split(" ")
+        count = 50
+        results = {}
+        # Warmup
+        for _ in range(20):
+            self.bible_search.search("jesus wept", max_results=100)
+        # Test
+        for token_count in range(1, len(tokenized)):
+            query = ' '.join(tokenized[:token_count])
+            start = time.perf_counter()
+            for _ in range(count):
+                # Do some searching
+                self.bible_search.search(
+                    query,
+                    max_results=100)
+            end = time.perf_counter()
+            results[token_count] = (end - start) / count
+        for token_count, time_taken in results.items():
+            print(f"{token_count = }: {time_taken:.6f}")
+        if MAKE_PLOT:
+            # pylint: disable=import-outside-toplevel
+            import matplotlib.pyplot as plt
+            import numpy as np
+            counts = list(results.keys())
+            times = list(results.values())
+
+            coeffs = np.polyfit(counts, times, deg=4)
+            trend = np.polyval(coeffs, counts)
+
+            plt.figure(figsize=(8, 5))
+            plt.plot(counts, times, marker='o')
+            plt.plot(counts, trend, color="red", linestyle="--", label="Trend")
+            plt.xlabel("Token Count")
+            plt.ylabel("Time")
+            plt.title("Token Count vs. Query Time")
+            plt.legend()
+            plt.grid(True)
+            try:
+                plt.savefig("./tests/times.jpg")
+            except FileNotFoundError:
+                plt.savefig("../tests/times.jpg")
+            # plt.show()
 
 
 if __name__ == '__main__':

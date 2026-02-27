@@ -64,7 +64,9 @@ class TestSearch(unittest.TestCase):
         self.assertEqual(len(query8), 0)
         query9 = self.bible_search.search("Jesus wept", "ESV")
         self.assertGreater(len(query9), 0)
-        self.assertIn('John 11:35', query9[:5])
+        self.assertIn('John 11:35', query9[:7])
+        self.assertIn('Mark 14:72', query9[:5])
+        self.assertIn('Matthew 26:75', query9[:5])
         query10 = self.bible_search.search(
             "And your feet shod with the preparation of the gospel of peace"
         )
@@ -95,6 +97,10 @@ class TestSearch(unittest.TestCase):
                 max_results=100)
         # Did it work?
         self.assertEqual(len(query12), 100)
+
+        query13 = self.bible_search.search("Jesus wept", "LSB")
+        self.assertGreater(len(query13), 0)
+        self.assertIn('John 11:35', query13[:5])
 
     def test_query_edge_cases(self):
         """
@@ -146,7 +152,7 @@ class TestSearch(unittest.TestCase):
         english_versions = self.bible_search.english_versions
         english_versions.sort()
         for version in english_versions:
-            # print(version)
+            print(version)
             result = self.bible_search.search("jesus wept", version)
             self.assertGreater(len(result), 0, f"Fail for version {version}")
 

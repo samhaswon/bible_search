@@ -241,7 +241,7 @@ def make_index(bibles_in: dict) -> dict:
     print("Built primary index. Removing some duplicates across all versions of each language...")
     english_versions = [
         'ACV', 'AKJV', 'AMP', 'ASV', 'BBE', 'BSB', 'CSB', 'Darby', 'DRA', 'EBR',
-        'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSV', 'MSG', 'NASB 1995', 'NET',
+        'ESV', 'GNV', 'KJV', 'KJV 1611', 'LSB', 'LSV', 'MSG', 'NASB 1995', 'NET',
         'NIV 1984', 'NIV 2011', 'NKJV', 'NLT', 'RNKJV', 'RSV', 'RWV', 'UKJV',
         'WEB', 'YLT'
     ]
@@ -264,7 +264,7 @@ def make_index(bibles_in: dict) -> dict:
     both_niv = ["NIV 1984", "NIV 2011"]
     pool.apply_async(separate_duplicates_mp, args=(built_index, both_niv, "NIV",))
 
-    literal = ["ACV", "AMP", "ASV", "ESV", "NASB 1995", "NKJV", "RSV", "RWV", "WEB"]
+    literal = ["ACV", "AMP", "ASV", "NKJV", "RWV", "WEB"]
     pool.apply_async(separate_duplicates_mp, args=(built_index, literal, "Literal",))
 
     dynamic = ["CSB", "NLT", "NET"]
@@ -272,6 +272,9 @@ def make_index(bibles_in: dict) -> dict:
 
     literal2 = ["BSB", "LSV", "YLT"]
     pool.apply_async(separate_duplicates_mp, args=(built_index, literal2, "Literal2",))
+
+    literal3 = ["ESV", "LSB", "NASB 1995", "RSV"]
+    pool.apply_async(separate_duplicates_mp, args=(built_index, literal3, "Literal3",))
 
     rv_versions = ["RV1960", "RV2004"]
     pool.apply_async(separate_duplicates_mp, args=(built_index, rv_versions, "EsRV",))
@@ -321,6 +324,7 @@ if __name__ == '__main__':
         'GNV': GNV(),
         'KJV': KJV(),
         'KJV 1611': KJV1611(),
+        'LSB': LSB(),
         'LSV': LSV(),
         'MSG': MSG(),
         'NASB 1995': NASB1995(),

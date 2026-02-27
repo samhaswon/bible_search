@@ -24,6 +24,10 @@ else:
         "-fno-math-errno",
         "-ffast-math",
         "-flto",
+        # Debug flags:
+        # "-fno-omit-frame-pointer",
+        # "-O0",
+        # "-g",
     ]
     if tune_native:
         print("Running native build")

@@ -10,10 +10,11 @@ class BibleDownloader:
         "Darby.json.pbz2", "DRA.json.pbz2", "Dynamic.json.pbz2", "EBR.json.pbz2", "EsRV.json.pbz2",
         "ESV.json.pbz2", "ExtraEng.json.pbz2", "GNV.json.pbz2", "KJV%201611.json.pbz2",
         "KJV-like.json.pbz2", "KJV.json.pbz2", "Literal.json.pbz2", "Literal2.json.pbz2",
-        "LSV.json.pbz2", "MSG.json.pbz2", "NASB%201995.json.pbz2", "NET.json.pbz2",
-        "NIV%201984.json.pbz2", "NIV%202011.json.pbz2", "NIV.json.pbz2", "NKJV.json.pbz2",
-        "NLT.json.pbz2", "RNKJV.json.pbz2", "RSV.json.pbz2", "RV1960.json.pbz2",
-        "RV2004.json.pbz2", "RWV.json.pbz2", "UKJV.json.pbz2", "WEB.json.pbz2", "YLT.json.pbz2",
+        "Literal3.json.pbz2", "LSB.json.pbz2", "LSV.json.pbz2", "MSG.json.pbz2",
+        "NASB%201995.json.pbz2", "NET.json.pbz2", "NIV%201984.json.pbz2", "NIV%202011.json.pbz2",
+        "NIV.json.pbz2", "NKJV.json.pbz2", "NLT.json.pbz2", "RNKJV.json.pbz2", "RSV.json.pbz2",
+        "RV1960.json.pbz2", "RV2004.json.pbz2", "RWV.json.pbz2", "UKJV.json.pbz2", "WEB.json.pbz2",
+        "YLT.json.pbz2",
     ]
     __index_file_urls: List[Tuple[str, str]] = \
         [

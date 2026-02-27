@@ -103,6 +103,8 @@ Currently, these versions are supported:
 
   - King James Version 1611 (KJV 1611)
 
+  - The Legacy Standard Bible (LSB)
+
   - Literal Standard Version (LSV)
 
   - The Message (MSG)

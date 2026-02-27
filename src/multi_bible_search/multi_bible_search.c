@@ -9,7 +9,7 @@
 // Tell MSVC it's fine
 #pragma warning(disable : 4996)
 
-#define NUM_TABLES 40
+#define NUM_TABLES 42
 
 // Combined indices
 #define ENGLISH_ALL 0
@@ -18,12 +18,13 @@
 #define NIV 3
 #define LITERAL 4
 #define LITERAL2 5
-#define DYNAMIC 6
-#define ES_RV 7
-#define EXTRA_ENG 8
+#define LITERAL3 6
+#define DYNAMIC 7
+#define ES_RV 8
+#define EXTRA_ENG 9
 
 // This should be the same as the highest combined index's index
-#define COMBINED_INDEX_OFFSET 8
+#define COMBINED_INDEX_OFFSET 9
 
 // This is an ever so slight, single use optimization over itoa
 static inline void ref_to_str(uint_fast16_t num, char* str) {
@@ -400,9 +401,10 @@ triple get_table_index(const char* version) {
     // NIV is 3
     // Literal is 4
     // Literal2 is 5
-    // Dynamic is 6
-    // Spanish Reina Valera is 7
-    // Extra English is 8
+    // Literal3 is 6
+    // Dynamic is 7
+    // Spanish Reina Valera is 8
+    // Extra English is 9
     triple indices;
     indices.lang = ENGLISH_ALL;
     indices.b = 0;
@@ -496,7 +498,7 @@ triple get_table_index(const char* version) {
         // ESV
         case 'S':
             indices.a = COMBINED_INDEX_OFFSET + 12;
-            indices.b = LITERAL;
+            indices.b = LITERAL3;
             break;
 
         default:
@@ -530,15 +532,27 @@ triple get_table_index(const char* version) {
         }
         break;
 
-    // LSV
     case 'L':
-        indices.a = COMBINED_INDEX_OFFSET + 16;
-        indices.b = LITERAL2;
-        break;
+        switch (version[2])
+        {
+        // LSB
+        case 'B':
+            indices.a = COMBINED_INDEX_OFFSET + 16;
+            indices.b = LITERAL3;
+            break;
+        // LSV
+        case 'V':
+            indices.a = COMBINED_INDEX_OFFSET + 17;
+            indices.b = LITERAL2;
+            break;
+        default:
+            indices.a = 0;
+            break;
+        }
 
     // MSG
     case 'M':
-        indices.a = COMBINED_INDEX_OFFSET + 17;
+        indices.a = COMBINED_INDEX_OFFSET + 18;
         break;
 
     case 'N':
@@ -546,13 +560,13 @@ triple get_table_index(const char* version) {
         {
         // NASB 1995
         case 'A':
-            indices.a = COMBINED_INDEX_OFFSET + 18;
-            indices.b = LITERAL;
+            indices.a = COMBINED_INDEX_OFFSET + 19;
+            indices.b = LITERAL3;
             break;
 
         // NET
         case 'E':
-            indices.a = COMBINED_INDEX_OFFSET + 19;
+            indices.a = COMBINED_INDEX_OFFSET + 20;
             indices.b = DYNAMIC;
             break;
 
@@ -560,24 +574,24 @@ triple get_table_index(const char* version) {
         case 'I':
             // NIV 1984
             if (version[4] == '1') {
-                indices.a = COMBINED_INDEX_OFFSET + 20;
+                indices.a = COMBINED_INDEX_OFFSET + 21;
             }
             // NIV 2011
             else {
-                indices.a = COMBINED_INDEX_OFFSET + 21;
+                indices.a = COMBINED_INDEX_OFFSET + 22;
             }
             indices.b = NIV;
             break;
 
         // NKJV
         case 'K':
-            indices.a = COMBINED_INDEX_OFFSET + 22;
+            indices.a = COMBINED_INDEX_OFFSET + 23;
             indices.b = LITERAL;
             break;
 
         // NLT
         case 'L':
-            indices.a = COMBINED_INDEX_OFFSET + 23;
+            indices.a = COMBINED_INDEX_OFFSET + 24;
             indices.b = DYNAMIC;
             break;
 
@@ -592,14 +606,14 @@ triple get_table_index(const char* version) {
         {
         // RNKJV
         case 'N':
-            indices.a = COMBINED_INDEX_OFFSET + 24;
+            indices.a = COMBINED_INDEX_OFFSET + 25;
             indices.b = KJV_LIKE;
             break;
 
         // RSV
         case 'S':
-            indices.a = COMBINED_INDEX_OFFSET + 25;
-            indices.b = LITERAL;
+            indices.a = COMBINED_INDEX_OFFSET + 26;
+            indices.b = LITERAL3;
             break;
 
         case 'V':
@@ -607,14 +621,14 @@ triple get_table_index(const char* version) {
             {
             // RV1960
             case '1':
-                indices.a = COMBINED_INDEX_OFFSET + 26;
+                indices.a = COMBINED_INDEX_OFFSET + 27;
                 indices.b = ES_RV;
                 indices.lang = SPANISH_ALL;
                 break;
             
             // RV2004
             case '2':
-                indices.a = COMBINED_INDEX_OFFSET + 27;
+                indices.a = COMBINED_INDEX_OFFSET + 28;
                 indices.b = ES_RV;
                 indices.lang = SPANISH_ALL;
                 break;
@@ -627,7 +641,7 @@ triple get_table_index(const char* version) {
 
         // RWV
         case 'W':
-            indices.a = COMBINED_INDEX_OFFSET + 28;
+            indices.a = COMBINED_INDEX_OFFSET + 29;
             indices.b = LITERAL;
             break;
 
@@ -639,19 +653,19 @@ triple get_table_index(const char* version) {
 
     // UKJV
     case 'U':
-        indices.a = COMBINED_INDEX_OFFSET + 29;
+        indices.a = COMBINED_INDEX_OFFSET + 30;
         indices.b = KJV_LIKE;
         break;
 
     // WEB
     case 'W':
-        indices.a = COMBINED_INDEX_OFFSET + 30;
+        indices.a = COMBINED_INDEX_OFFSET + 31;
         indices.b = LITERAL;
         break;
 
     // YLT
     case 'Y':
-        indices.a = COMBINED_INDEX_OFFSET + 31;
+        indices.a = COMBINED_INDEX_OFFSET + 32;
         indices.b = LITERAL2;
         break;
 
@@ -975,6 +989,9 @@ PyObject *SearchObject_load(SearchObject *self, PyObject *args) {
     }
     else if (!strcmp(version, "Literal2")) {
         table_index = LITERAL2;
+    }
+    else if (!strcmp(version, "Literal3")) {
+        table_index = LITERAL3;
     }
     else if (!strcmp(version, "Dynamic")) {
         table_index = DYNAMIC;

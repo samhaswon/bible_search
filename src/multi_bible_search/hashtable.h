@@ -10,14 +10,14 @@
 #define INCREMENT_SIZE 100
 
 // The max load of the table before reallocation
-#define MAX_LOAD 0.75
+#define MAX_LOAD 0.8
 
 // struct representing an element of the hash table
 struct element
 {
-    char key[20];
+    char key[22];
     uint32_t* value;
-    int length;
+    uint32_t length;
 };
 
 // struct representing the overall hash table
